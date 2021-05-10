@@ -3,12 +3,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include "lib/structs.h"
 
-#define MAX 80
+#define MAX 1024
 #define PORT 8080
+
 #define SA struct sockaddr
 
-void func(int sockfd);
+
+void messageHandler(int sockfd);
 
 int main()
 {
@@ -39,26 +42,42 @@ int main()
 		printf("connected to the server..\n");
 
 	// function for chat
-	func(sockfd);
+	messageHandler(sockfd);
 
 	// close the socket
 	close(sockfd);
 }
 
-void func(int sockfd)
+void messageHandler(int sockfd)
 {
 	char buff[MAX];
 	int n;
+	msg userMessage;
+	serverResponse serverResp;
+	printf("Your username : ");
+	fgets(buff, 1023, stdin);
+	printf("\n");
+	__fpurge(stdin);
+
+	strcpy(userMessage.username, buff);
+
+	//INIT USER
+	write(sockfd, (char *) &userMessage, sizeof(userMessage));
+
+	read(sockfd, (char *) &serverResp, sizeof(serverResp));
+
+	printf("\n\nServer answer: %s", serverResp.message);
+
 	for (;;) {
 		bzero(buff, sizeof(buff));
-		printf("Enter the string : ");
+		printf("\n\nEnter the string : ");
 		n = 0;
-		while ((buff[n++] = getchar()) != '\n')
-			;
+		while ((buff[n++] = getchar()) != '\n');
 		write(sockfd, buff, sizeof(buff));
 		bzero(buff, sizeof(buff));
 		read(sockfd, buff, sizeof(buff));
 		printf("From Server : %s", buff);
+
 		if ((strncmp(buff, "exit", 4)) == 0) {
 			printf("Client Exit...\n");
 			break;
