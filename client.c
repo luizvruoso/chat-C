@@ -50,16 +50,18 @@ int main()
 
 void messageHandler(int sockfd)
 {
-	char buff[MAX];
+	char buff[MAX]={0};
 	int n;
 	msg userMessage;
 	serverResponse serverResp;
 	printf("Your username : ");
-	fgets(buff, 1023, stdin);
+	n = 0;
+	while ((buff[n++] = getchar()) != '\n');
+	n--;
 	printf("\n");
 	__fpurge(stdin);
 
-	strcpy(userMessage.username, buff);
+	strncpy(userMessage.username, buff, n);
 
 	//INIT USER
 	write(sockfd, (char *) &userMessage, sizeof(userMessage));
