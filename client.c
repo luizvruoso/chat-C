@@ -64,6 +64,8 @@ void messageHandler(int sockfd)
 	strncpy(userMessage.username, buff, n);
 
 	//INIT USER
+	read(sockfd, (char *) &serverResp, sizeof(serverResp));
+
 	write(sockfd, (char *) &userMessage, sizeof(userMessage));
 
 	read(sockfd, (char *) &serverResp, sizeof(serverResp));

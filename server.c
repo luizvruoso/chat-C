@@ -32,9 +32,9 @@ struct sembuf	g_sem_op2[1];
 #define SA struct sockaddr
 
 // Function designed for chat between client and server.
-void func(int sockfd);
+//void func(int sockfd, int, int);
 
-void registerUser(int,  struct sockaddr_in * );
+void registerUser(int,  int ,struct sockaddr_in * );
 // Driver function
 int main(){
 	int sockfd, connfd, len;
@@ -69,14 +69,6 @@ int main(){
 		exit(1);
 	}
 	//*g_shm_addr = NULL;
-
-
-
-
-
-
-
-
 
 
 	// socket create and verification
@@ -115,45 +107,42 @@ int main(){
 	// Accept the data packet from client and verification
 	for(int i = 0; i < 2; i++){
 
-		if(fork() == 0)
-			do{
-				
-				printf("port %d \n\n", cli.sin_port);
+		printf("port %d \n\n", cli.sin_port);
 
-				connfd = accept(sockfd, (SA*)&cli, &len);
-				//bloqueando semafaro
-				if( semop( g_sem_id, g_sem_op1, 1 ) == -1 ) {
-                       	fprintf(stderr,"chamada semop() falhou, impossivel fechar o recurso!");
-                       	exit(1);
-               	 }
-				//fim	
-					//*g_shm_addr = connfd;
-					g_shm_addr->sin_addr = cli.sin_addr;
-					g_shm_addr->sin_family = cli.sin_family;
-					g_shm_addr->sin_port = cli.sin_port;
-					//g_shm_addr->sin_zero = cli.sin_zero;
+		connfd = accept(sockfd, (SA*)&cli, &len);
+		if (connfd < 0) {
+			printf("server acccept failed...\n");
+			exit(0);
+		}
+		else
+			printf("server accept the client...\n");
+
+		if(fork() == 0){
+			//bloqueando semafaro
+			if( semop( g_sem_id, g_sem_op1, 1 ) == -1 ) {
+				fprintf(stderr,"chamada semop() falhou, impossivel fechar o recurso!");
+				exit(1);
+			}
+			//fim	
+			//*g_shm_addr = connfd;
+			g_shm_addr->sin_addr = cli.sin_addr;
+			g_shm_addr->sin_family = cli.sin_family;
+			g_shm_addr->sin_port = cli.sin_port;
+			//g_shm_addr->sin_zero = cli.sin_zero;
+
+			if( semop( g_sem_id, g_sem_op2, 1 ) == -1 ) {      		
+				fprintf(stderr,"chamada semop() falhou, impossivel liberar o recurso!");
+				exit(1);
+			}
 
 
-				if( semop( g_sem_id, g_sem_op2, 1 ) == -1 ) {      		
-                    fprintf(stderr,"chamada semop() falhou, impossivel liberar o recurso!");
-                  	exit(1);
-               	}
-
-				if (connfd < 0) {
-					printf("server acccept failed...\n");
-					exit(0);
-				}
-				else
-					printf("server accept the client...\n");
-
-				printf("port %d \n\n", cli.sin_port);
-				// Function for chatting between client and server
-				//printf("\nDescritores:  sock: %d    msgsock:%d \n\n", sockfd, connfd);
-				registerUser(connfd, &cli);
-
+			printf("port %d \n\n", cli.sin_port);
+			// Function for chatting between client and server
+			//printf("\nDescritores:  sock: %d    msgsock:%d \n\n", sockfd, connfd);
+			registerUser(sockfd, connfd, &cli);
 				// After chatting close the socket
-				close(sockfd);
-			}while(1);
+			close(sockfd);
+		}
 	}
 
 	for(int i = 0; i < 2; i++){
@@ -180,7 +169,7 @@ int main(){
 }
 
 
-void registerUser(int sockfd, struct sockaddr_in * client)
+void registerUser(int sockfd, int connfd, struct sockaddr_in * client)
 {
 	char buff[MAX];
 	int n;
@@ -189,7 +178,7 @@ void registerUser(int sockfd, struct sockaddr_in * client)
 	FILE *file;
 	int sock;
 
-	read(sockfd, (char *) &userMessage, sizeof(userMessage));
+	read(connfd, (char *) &userMessage, sizeof(userMessage));
 	message.statusCode = 1;
 	strcpy(message.message, "YES u can!");
 	
@@ -202,15 +191,15 @@ void registerUser(int sockfd, struct sockaddr_in * client)
 	}
 
 	
-	write(sockfd, (char *) &message, sizeof(message));
+	write(connfd, (char *) &message, sizeof(message));
 
 	//printf("hoooixinho darlyn %d \n", *g_shm_addr);
 	while(1) {
 		bzero(buff, MAX);
 
 		// read the message from client and copy it in buffer
-		read(sockfd, buff, sizeof(buff));
-		printf("sockfd: %d \n\n", sockfd);
+		read(connfd, buff, sizeof(buff));
+		printf("sockfd: %d \n\n", connfd);
 		// print buffer which contains the client contents
 		printf("\nFrom client: %s\t To client : ", buff);
 		printf("\n");
@@ -225,7 +214,8 @@ void registerUser(int sockfd, struct sockaddr_in * client)
 		//if(sendto(sock, (char *) buff, sizeof(buff), 0, (struct sockaddr *) g_shm_addr, sizeof g_shm_addr) < 0) 
          //  perror("Envio da mensagem"); 
       
-		write(sockfd, buff, sizeof(buff));
+		write(connfd, buff, sizeof(buff));
+
 
 		// if msg contains "Exit" then server exit and chat ended.
 		if (strncmp("exit", buff, 4) == 0) {
