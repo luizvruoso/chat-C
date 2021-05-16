@@ -1,14 +1,16 @@
 #define MAX 1024
 #define FILE_NAME  "bd.txt"
 #define TEMP_FILE_NAME  "temp.txt"
+
 int searchUser(char *username) {
 
 	char buff[MAX] = {};
 	char aux[MAX] ={'\0'};
 	//read(sockfd, (char *) &userMessage, sizeof(userMessage));
-	
+	int lenUsername = sizeof(username);
 	FILE * file;
 	file = fopen(FILE_NAME, "r");
+	
 
 	if(file == NULL) {
         	fprintf(stderr, "Could not open input file\n");
@@ -18,11 +20,13 @@ int searchUser(char *username) {
 	int i = 0;
 	fgets(buff, 1024, file);
 	
+
 	while(!feof(file)) {
 		if( i % 2 == 0 ) {
 			bzero(aux, sizeof(aux));
-			valueAfterEquals(aux, buff, sizeof(buff));
-			if(strcmp(aux, username ) == 0 ) {
+			valueAfterEquals(aux, buff);
+			//printf("aux %s usernmae: %s \n\n\n", aux, username);
+			if(strcmp(aux, username) == 0 ) {
 				fclose(file);
 				return 0;
 			}
@@ -32,16 +36,40 @@ int searchUser(char *username) {
 		fgets(buff, 1024, file);
 		i++;
 	}
-
+	
 	fclose(file);
 	return 1;
 }
 
+void printContactList() {
+	FILE *f;
+
+	f = fopen(FILE_NAME,"r");
+	int i = 0;
+
+    char line[MAX] = {'\0'};
+    char destiny[MAX] = {'\0'};
+
+    while(!feof(f)) {
+
+		bzero(destiny, sizeof(destiny));
+
+		fgets(line, sizeof(line), f);
+      	valueAfterEquals(destiny, line);
+		printf("User: %s ", destiny);
+		
+		bzero(destiny, sizeof(destiny));
+
+		fgets(line, sizeof(line), f);
+		valueAfterEquals(destiny, line);
+		printf("is: %s \n", destiny);
+	}
+}
 
 void printStatusAtRightPosition(char *username, char *status){
-	FILE * file;
+    FILE * file;
     FILE * tempFile;
-	file = fopen(FILE_NAME, "a+");
+    file = fopen(FILE_NAME, "a+");
     tempFile = fopen(TEMP_FILE_NAME, "w");
 
 	char buff[MAX] = {0};
@@ -61,7 +89,7 @@ void printStatusAtRightPosition(char *username, char *status){
 	while(!feof(file)) {
 		if( i % 2 == 0 ) {
             bzero(aux, sizeof(aux));
-			valueAfterEquals(aux, buff, sizeof(buff));
+			valueAfterEquals(aux, buff);
 
 			if( strcmp(aux, username ) == 0 ) {
                 //encontrei o usuario
@@ -81,8 +109,8 @@ void printStatusAtRightPosition(char *username, char *status){
 		i++;
 	}
 
-	fclose(file);
-	fclose(tempFile);
+   fclose(file);
+    fclose(tempFile);
     remove(FILE_NAME);  		// remove the original file 
     rename(TEMP_FILE_NAME, FILE_NAME);
 
@@ -100,12 +128,10 @@ int isEqualsToUsername(char *username, int n){
 	//pego o pre fixo copiado e comparo com o conteudo que desejo encontrar
 	if(strcmp(aux, "username")) return 1;
 	else return -1;
-	
-
-
 }
 
-void valueAfterEquals(char * destiny,char * buffer, int n){
+
+void valueAfterEquals(char * destiny, char * buffer){
 
 	
 	int k = 0;
@@ -123,10 +149,6 @@ void valueAfterEquals(char * destiny,char * buffer, int n){
 		i++;
 	}
 	//printf("aux31321  %s\n", destiny);
-
-
-
-
 }
 
 void printAtEndOfFile(char *buff,  char *userStatus){
@@ -151,3 +173,4 @@ void printAtEndOfFile(char *buff,  char *userStatus){
 
 	fclose(file);
 }
+

@@ -5,8 +5,15 @@ struct {
 
 struct {
 	int	operation;
-	char 	username[1024];
-	char 	message[1024];
-	int 	myPortNumber;
-	char 	userDestiny[1024];
+	char username[1024] ;
+	char message[1024];
+	int myPortNumber;
+	char userDestiny[1024];
 } typedef msg;
+
+struct {
+
+	int  * socket;
+	char username[1024];
+
+}typedef user;

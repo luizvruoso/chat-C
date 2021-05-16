@@ -1,2 +1,4 @@
-hoiVintas
-ONLINE
+username=luiz;
+status=ONLINE;
+username=hoiVintas;
+status=ONLINE;
