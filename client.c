@@ -66,7 +66,10 @@ void messageHandler(int *sockfd){
 	printf("\n");
 	__fpurge(stdin);
 
-	strncpy(userMessage.username, buff, n);
+	strncpy(userMessage.username.content, buff, n);
+	userMessage.username.nBytes = n;
+
+	printf("\n\n\nvalores: %s", userMessage.username.content);
 
 	printf("AVAILABLE USERS: \n");
 	printf("##################################################\n");
@@ -104,13 +107,13 @@ void messageHandler(int *sockfd){
 		n = 0;
 		while ((buff[n++] = getchar()) != '\n');
 		n--;
-		strncpy(userMessage.message, buff, n);
-
+		strncpy(userMessage.message.content, buff, n);
+		userMessage.message.nBytes = n;
 
 		write(*sockfd, (char *) &userMessage, sizeof(msg));
 		bzero(buff, sizeof(buff));
 		//strncpy(buff, '\0', sizeof(buff));
-		bzero(userMessage.message, sizeof(userMessage.message));
+		bzero(userMessage.message.content, sizeof(userMessage.message.content));
 		//bzero(userMessage.userDestiny, sizeof(userMessage.userDestiny));
 
 		//read(sockfd, buff, sizeof(buff));

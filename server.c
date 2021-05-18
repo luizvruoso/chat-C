@@ -114,7 +114,7 @@ void * registerUser(void * sockfd)
 
 	//bzero(userMessage.username, sizeof(userMessage.username));
 	//bzero(userMessage.userDestiny, sizeof(userMessage.userDestiny));
-	bzero(userMessage.message, sizeof(userMessage.message));
+	bzero(userMessage.message.content, sizeof(userMessage.message.content));
 
 	read(sock, (struct msg *) &userMessage, sizeof(userMessage));
 
@@ -123,12 +123,12 @@ void * registerUser(void * sockfd)
 	
 	write(sock, (char *) &message, sizeof(serverResponse));
 
-	if(searchUser(userMessage.username) == 0) {
+	if(searchUser(userMessage.username.content) == 0) {
 		//usuario ja registrado, fica online
-		printStatusAtRightPosition(userMessage.username, "ONLINE");
+		printStatusAtRightPosition(userMessage.username.content, "ONLINE");
 	}else {
 		//novo usuario é registrado e fica online
-		printAtEndOfFile(userMessage.username, "ONLINE");
+		printAtEndOfFile(userMessage.username.content, "ONLINE");
 	}
 	pthread_mutex_lock(&mutex);
 	
@@ -138,7 +138,7 @@ void * registerUser(void * sockfd)
 		//write(sock, message.message, sizeof(message.message));
 		
 		//printf("socket no role: %d \n\n\n", *clients[0].socket);
-		strncpy(clients[POINTER_LAST_POINTER].username, userMessage.username, sizeof(userMessage.username) );
+		strncpy(clients[POINTER_LAST_POINTER].username, userMessage.username.content, sizeof(userMessage.username.content) );
 		//strcpy(clients[POINTER_LAST_POINTER].username, userMessage.username);
 		POINTER_LAST_POINTER++;
 
@@ -153,10 +153,10 @@ void * registerUser(void * sockfd)
 		//strncpy(userMessage.message, '\0', 1023);
 		read(sock, (char *) &userMessage, sizeof(msg));
 		printf("msg do read: %s \n\n\n", userMessage.message);
-		if(strncmp(userMessage.message, "exit", 4) == 0){
+		if(strncmp(userMessage.message.content, "exit", 4) == 0){
 			break;
 		}else{
-			sendToUser(userMessage.message, userMessage.userDestiny);
+			sendToUser(userMessage.message.content, userMessage.userDestiny);
 		}
 
 	}

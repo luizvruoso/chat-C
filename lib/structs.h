@@ -3,13 +3,21 @@ struct {
 	char 	message[1024];
 } typedef serverResponse;
 
+struct{
+	char content[1024];
+	int nBytes;
+}typedef charContentOps;
+
+
 struct {
 	int	operation;
-	char username[1024] ;
-	char message[1024];
+	charContentOps username;
+	charContentOps message;
 	int myPortNumber;
 	char userDestiny[1024];
 } typedef msg;
+
+
 
 struct {
 
