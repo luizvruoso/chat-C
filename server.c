@@ -114,10 +114,10 @@ void * registerUser(void * sockfd)
 
 	//bzero(userMessage.username, sizeof(userMessage.username));
 	//bzero(userMessage.userDestiny, sizeof(userMessage.userDestiny));
-	bzero(userMessage.message.content, sizeof(userMessage.message.content));
+	//bzero(userMessage.message.content, sizeof(userMessage.message.content));
 
 	read(sock, (struct msg *) &userMessage, sizeof(userMessage));
-
+	printf("user : %s\n", userMessage.username.content);
 	message.statusCode = 1;
 	strcpy(message.message, "YES u can!");
 	
@@ -156,7 +156,7 @@ void * registerUser(void * sockfd)
 		if(strncmp(userMessage.message.content, "exit", 4) == 0){
 			break;
 		}else{
-			sendToUser(userMessage.message.content, userMessage.userDestiny);
+			sendToUser(userMessage.message.content, userMessage.userDestiny.content);
 		}
 
 	}

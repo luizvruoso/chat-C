@@ -14,7 +14,7 @@ struct {
 	charContentOps username;
 	charContentOps message;
 	int myPortNumber;
-	char userDestiny[1024];
+	charContentOps userDestiny;
 } typedef msg;
 
 

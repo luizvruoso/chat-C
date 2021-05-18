@@ -81,14 +81,16 @@ void messageHandler(int *sockfd){
 	n = 0;
 	while ((buff[n++] = getchar()) != '\n');
 	n--;
-	bzero(userMessage.userDestiny, 1024);
-	strncpy(userMessage.userDestiny, buff, n);	
+	//bzero(userMessage.userDestiny.content, 1024);
+	strncpy(userMessage.userDestiny.content, buff, n);	
+	userMessage.userDestiny.nBytes = n;
 
 
 	//strcpy(userMessage.userDestiny, "hoiVintas");
 
 	//INIT USER
 	//read(sockfd, (char *) &serverResp, sizeof(serverResp));
+	printf("\n\n\nvalores: %s", userMessage.userDestiny.content);
 
 	write(*sockfd, (char *) &userMessage, sizeof(msg));
 
