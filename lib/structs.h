@@ -1,7 +1,3 @@
-struct {
-	int	statusCode;
-	char 	message[1024];
-} typedef serverResponse;
 
 struct{
 	char content[1024];
@@ -17,6 +13,12 @@ struct {
 	charContentOps userDestiny;
 } typedef msg;
 
+struct {
+	int	statusCode;
+	int operation;
+	//char message[1024];
+	msg payload;
+} typedef serverResponse;
 
 
 struct {

@@ -27,8 +27,8 @@ user clients[50];
 //void func(int sockfd, int, int);
 
 void * registerUser(void *);
-void sendToUser(char * , char * );
-
+void sendToUser(msg * );
+void endUserSock(char * );
 // Driver function
 int main() {
 	int sockfd, connfd, len;
@@ -119,9 +119,13 @@ void * registerUser(void * sockfd)
 	read(sock, (struct msg *) &userMessage, sizeof(userMessage));
 	printf("user : %s\n", userMessage.username.content);
 	message.statusCode = 1;
-	strcpy(message.message, "YES u can!");
-	
+	strcpy(message.payload.message.content, "YES u can!");
+	message.operation = 1; 
+
 	write(sock, (char *) &message, sizeof(serverResponse));
+
+	//FIM 
+
 
 	if(searchUser(userMessage.username.content) == 0) {
 		//usuario ja registrado, fica online
@@ -151,58 +155,41 @@ void * registerUser(void * sockfd)
 	while(1){
 		//memcpy(userMessage.message,'\0', sizeof(userMessage.message));
 		//strncpy(userMessage.message, '\0', 1023);
-		read(sock, (char *) &userMessage, sizeof(msg));
-		printf("msg do read: %s \n\n\n", userMessage.message);
-		if(strncmp(userMessage.message.content, "exit", 4) == 0){
+		read(sock, (msg *) &userMessage, sizeof(msg));
+		printf("msg do read: %s \n\n\n", userMessage.message.content);
+
+		switch (userMessage.operation){
+			case 1:
+				sendToUser(&userMessage);
 			break;
-		}else{
-			sendToUser(userMessage.message.content, userMessage.userDestiny.content);
+
+			case 2:
+					//list to user, list of contacts
+			break;
+			case 3:
+					//send file
+			break;
+			case 4: 
+					//exit server
+				printStatusAtRightPosition(userMessage.username.content, "OFFLINE");
+				close(sock);
+			break;
 		}
+			
+		
 
 	}
 
-	//printf("hoooixinho darlyn %d \n", *g_shm_addr);
-
-	/*
-	while(1) {
-		bzero(buff, MAX);
-
-		// read the message from client and copy it in buffer
-		read(sock, buff, sizeof(buff));
-		printf("sockfd: %d \n\n", sockfd);
-		// print buffer which contains the client contents
-		printf("\nFrom client: %s\t To client : ", buff);
-		printf("\n");
-		bzero(buff, MAX);
-		n = 0;
-		// copy server message in the buffer
-		
-		while ((buff[n++] = getchar()) != '\n');
-		
-		// and send that buffer to client
-		//if(sendto(sock, (char *) buff, sizeof(buff), 0, (struct sockaddr *) g_shm_addr, sizeof g_shm_addr) < 0) 
-       	 	//perror("Envio da mensagem");
-      
-		write(sock, buff, sizeof(buff));
-
-		// if msg contains "Exit" then server exit and chat ends.
-		if (strncmp("exit", buff, 4) == 0) {
-			printf("Server Exit...\n");
-			break;
-		}
-		
-
-		//exit(0);
-	}*/
+	
 }
 
 
-void sendToUser(char * msg1, char * userDestiny){
+void sendToUser(msg * userMessage){
 	//printf("hoiii %d\n\n\n", *clients[0].socket);
 	//printf("hoiii %s \n\n", msg1);
 	//printf("hoiii %s\n", userDestiny);
+	serverResponse server;
 	
-
 	pthread_mutex_lock(&mutex);
 	for(int i=0;i<20; i++){
 		//printf("nClient %d\n", sizeof(clients[i].username));
@@ -210,23 +197,28 @@ void sendToUser(char * msg1, char * userDestiny){
 
 		//printf("Comparacaço %d \n\n\n\n", strncmp(clients[i].username, userDestiny, strlen(clients[i].username)));
 		
-		if(strncmp(clients[i].username, userDestiny, strlen(clients[i].username)) == 0){
+		if(strncmp(clients[i].username, userMessage->userDestiny.content, strlen(clients[i].username)) == 0){
 
-			printf("usernmae %s\n", userDestiny);
+			server.operation = 2; //incoming message
+			strcpy(server.payload.message.content, userMessage->message.content);
+			server.payload.message.nBytes = userMessage->message.nBytes;
+			strcpy(server.payload.userDestiny.content, userMessage->userDestiny.content);
+			server.payload.userDestiny.nBytes = userMessage->userDestiny.nBytes;
+
+
+
+
+			printf("username: %s\n", userMessage->userDestiny.content);
 			//printf("list: %s\n", clients[i].username);
 			
-			printf("hoiii %d\n", sizeof(msg1));
-			write(*clients[i].socket, msg1, 1023);
+			//printf("hoiii %d\n", sizeof(msg1));
+			printf("username: %s \n\n", userMessage->message.content);
+			write(*clients[i].socket, (char *) &server, sizeof(serverResponse));
 			break;
 		}
 	}
 	pthread_mutex_unlock(&mutex);
 
-	
-	
-
-
-	
-
-
 }
+
+

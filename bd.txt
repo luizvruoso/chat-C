@@ -2,8 +2,3 @@ username=luiz;
 status=ONLINE;
 username=hoiVintas;
 status=ONLINE;
-
-username=;
-status=ONLINE;
-username=;
-status=ONLINE;

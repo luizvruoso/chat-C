@@ -69,41 +69,39 @@ void messageHandler(int *sockfd){
 	strncpy(userMessage.username.content, buff, n);
 	userMessage.username.nBytes = n;
 
-	printf("\n\n\nvalores: %s", userMessage.username.content);
-
-	printf("AVAILABLE USERS: \n");
-	printf("##################################################\n");
-	printContactList();
-	printf("##################################################\n");
-
-	bzero(buff, sizeof(buff));
-	printf("\nEnter the user : ");
-	n = 0;
-	while ((buff[n++] = getchar()) != '\n');
-	n--;
-	//bzero(userMessage.userDestiny.content, 1024);
-	strncpy(userMessage.userDestiny.content, buff, n);	
-	userMessage.userDestiny.nBytes = n;
-
-
-	//strcpy(userMessage.userDestiny, "hoiVintas");
-
-	//INIT USER
-	//read(sockfd, (char *) &serverResp, sizeof(serverResp));
-	printf("\n\n\nvalores: %s", userMessage.userDestiny.content);
-
+	
 	write(*sockfd, (char *) &userMessage, sizeof(msg));
 
-	read(*sockfd, (struct serverResponse *) &serverResp, sizeof(serverResponse));
+	//server response:
+	read(*sockfd, (serverResponse *) &serverResp, sizeof(serverResponse));
+	if(serverResp.operation == 1){
+		printf("\n\nServer answer: %s", serverResp.payload.message.content);
+	}else{
+		printf("\n Server not responding ...\n");
+		close(*sockfd);
+		exit(0);
+	}
 
-	printf("\n\nServer answer: %s", serverResp.message);
 
-	//read(*sockfd, &msg1, sizeof(msg1));
-	//printf("\n\nServer answer1: %s", msg1);
-
+	//THREAD TO RECIVE INCOMING MESSAGES
 	pthread_create(&thread_id, NULL, (void *)recvMsg, sockfd);
+	//END
 
 	for (;;) {
+
+		//send message to
+		bzero(buff, sizeof(buff));
+		printf("\nEnter the user : ");
+		n = 0;
+		while ((buff[n++] = getchar()) != '\n');
+		n--;
+		//bzero(userMessage.userDestiny.content, 1024);
+		strncpy(userMessage.userDestiny.content, buff, n);	
+		userMessage.userDestiny.nBytes = n;
+		userMessage.operation = 1;
+		//end
+
+		//message to be sended
 		bzero(buff, sizeof(buff));
 		printf("\n\nEnter the string : ");
 		n = 0;
@@ -111,20 +109,26 @@ void messageHandler(int *sockfd){
 		n--;
 		strncpy(userMessage.message.content, buff, n);
 		userMessage.message.nBytes = n;
-
-		write(*sockfd, (char *) &userMessage, sizeof(msg));
-		bzero(buff, sizeof(buff));
-		//strncpy(buff, '\0', sizeof(buff));
-		bzero(userMessage.message.content, sizeof(userMessage.message.content));
-		//bzero(userMessage.userDestiny, sizeof(userMessage.userDestiny));
-
-		//read(sockfd, buff, sizeof(buff));
-		//printf("From Server : %s", buff);
+		//end
 
 		if ((strncmp(buff, "exit", 4)) == 0) {
 			printf("Client Exit...\n");
+
+			userMessage.operation = 4; //exit operation
+			write(*sockfd, (char *) &userMessage, sizeof(msg));
+			close(*sockfd);
 			break;
 		}
+
+
+
+		write(*sockfd, (char *) &userMessage, sizeof(msg));
+
+
+		
+
+
+		
 	}
 }
 
@@ -132,21 +136,37 @@ void messageHandler(int *sockfd){
 void * recvMsg(void * sockfd){
 	int sock = *((int *)sockfd);
 	int len;
-	//serverResponse serverResp;
-	char msg1[1024] = {'\0'};
-	//printf("thread client \n");
-	//printf("thread client socket: %d \n", sock);
+	msg msgFromServer;
+	serverResponse server;
 
-	// client thread always ready to receive message
+	while(1){
+		read(sock, (serverResponse *) &server, sizeof(serverResponse));
+		switch(server.operation){
+			case 1:
+				printf("\t \nServer close connection. Exiting..... \n");	
+				close(sock);
+				exit(0);
+
+			break;
+
+			case 2:
+				printf("\t \nRecieved message from: %s \n", server.payload.userDestiny.content);	
+				printf("\t \nMessage: %s \n", server.payload.message.content);	
+
+			break;
+
+			case 3: //CONTACT LIST
+
+
+			break;
+
+			case 4: //INCOMING FILE
 	
 
-	//recv(sockfd,msg,1024,0);
-	//recv(sockfd, &msg, sizeof(msg));
-	while(1){
-		read(sock, msg1, 1023);
-		
-		printf("\t \nNova mensagem: %s \n", msg1);
+			break;
+		}
 
+		
 		
 	}
 
