@@ -30,41 +30,10 @@ void * registerUser(void *);
 void sendToUser(msg * );
 void endUserSock(char * );
 void recieveFile(int );
+void writeFile(int);
+
 // Driver function
 
-void writeFile(int sockfd) {
-	FILE *fp;
-	//char *filename = "received.txt";
-	char buffer[MAX];
-	int n;
-	serverResponse server;
-
-	printf("AAAAA \n\n");
-
-	fp = fopen("received.txt", "w");
-
-	printf("AAAAA \n\n");
-
-	while(1) {
-		printf("BBBB \n\n");
-
-		read(sockfd, (serverResponse *) &server, sizeof(serverResponse));
-
-		if(server.operation == -1){ //terminou o envio
-			break;
-		}else{
-			printf("Adadasd %s\n", server.payload.message.content);
-
-			fprintf(fp, "%s", server.payload.message.content);
-			//bzero(buffer, MAX);
-			printf("BBBB \n\n");
-		}		
-		
-
-	}
-	fclose(fp);
-	return;
-}
 
 int main() {
 	int sockfd, connfd, len;
@@ -138,14 +107,12 @@ int main() {
 	//exit(0);
 }
 
-void * registerUser(void * sockfd)
-{
+void * registerUser(void * sockfd){
 	char buff[MAX];
 	int n;
 	serverResponse message;
 	msg userMessage;
 	int sock = *((int *) sockfd);
-
 
 	//bzero(userMessage.username, sizeof(userMessage.username));
 	//bzero(userMessage.userDestiny, sizeof(userMessage.userDestiny));
@@ -195,6 +162,7 @@ void * registerUser(void * sockfd)
 
 		switch (userMessage.operation){
 			case 1:
+				//send a message
 				sendToUser(&userMessage);
 			break;
 
@@ -208,12 +176,14 @@ void * registerUser(void * sockfd)
 					//exit server
 				printStatusAtRightPosition(userMessage.username.content, "OFFLINE");
 				close(sock);
+				exit(0);
 			break;
 		}
 			
 		
 
 	}
+	exit(0);
 
 	
 }
@@ -257,3 +227,42 @@ void sendToUser(msg * userMessage){
 }
 
 
+void writeFile(int sockfd) {
+	FILE *fp;
+	//char *filename = "received.txt";
+	char buffer[23904];
+	int n;
+	serverResponse server;
+
+	//printf("AAAAA \n\n");
+
+	fp = fopen("../received.mkv", "wb");
+
+	//printf("AAAAA \n\n");
+	server.operation = 0;
+	while(1) {
+		//printf("BBBB \n\n");
+		printf("esperando client flag %d \n\n\n", server.operation);
+		//sleep(2);
+		read(sockfd, (serverResponse *) &server, sizeof(serverResponse));
+		printf("hhhoi %d \n\n\n", server.operation);
+
+		if(server.operation == -1){ //terminou o envio
+			break;
+		}else{
+			printf("esperando dados %d \n\n\n");
+			read(sockfd, buffer, sizeof(buffer));
+			//printf(" %s\n", buffer);
+			//fprintf(fp, "%s", buffer);
+			fwrite(buffer, 1, sizeof(buffer), fp);
+			bzero(buffer, sizeof(buffer));
+			
+			//printf("BBBB \n\n");
+		}		
+		
+		printf("hhhoi \n\n\n");
+	}
+	printf("terminou \n\n\n");
+	fclose(fp);
+	return;
+}

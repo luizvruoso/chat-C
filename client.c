@@ -17,8 +17,8 @@ pthread_mutex_t mutex;
 void messageHandler(int * sockfd);
 void * recvMsg(void * sockfd);
 void sendFile(int , msg );
-int main()
-{
+
+int main(){
 	int sockfd, connfd;
 	struct sockaddr_in servaddr, cli;
 
@@ -107,7 +107,6 @@ void messageHandler(int *sockfd){
 }
 
 
-
 void sendFile(int sock, msg userMessage){
 	serverResponse server;
 
@@ -120,30 +119,49 @@ void sendFile(int sock, msg userMessage){
 
 	char data[MAX] = {0};
 	FILE *filePointer;
-
+	long long size = 0;
 	
 
-	filePointer = fopen("file.txt", "r");
+	filePointer = fopen("../a.mkv", "rb");
 
-	
+	fseek(filePointer, 0, SEEK_END);
+	size = ftell(filePointer);
+	fseek(filePointer, 0, SEEK_SET);
 
-	while(!feof(filePointer)) {
-		fgets(server.payload.message.content, sizeof(server.payload.message.content), filePointer);
+	printf("tamanho arquivo %lld \n\n\n", size);
+	//return;
+	//fgets(server.payload.message.content, sizeof(server.payload.message.content), filePointer);
+	//printf("Value da linha %s \n\n\n", server.payload.message.content);
+
+	char buffer[23904] = {0};
+	server.operation = 2;
+
+	do{
+		//fgets(buffer, sizeof(buffer), filePointer);
+		server.operation = 2;
+		printf("loop \n\n");
 		printf("get\n\n");
 		if (write(sock, (char *) &server, sizeof(serverResponse)) == -1) {
 			perror("error in sending data");
 			break;
 			//exit(1);
 		}
+		fread(buffer, 1, sizeof(buffer), filePointer);
+		//printf("%s \n", buffer);
+		write(sock, buffer, sizeof(buffer));
 		printf("enviou\n\n");
+		bzero(buffer, sizeof(buffer));
 
-		//bzero(data, MAX);
-	}
+	}while(!feof(filePointer));
+
 	printf("Cheguei no final \n\n");
 
 	fclose(filePointer);
 	server.operation = -1;
+	sleep(2);
 	write(sock, (char *) &server, sizeof(serverResponse));
+
+	
 	return ;
 
 
@@ -165,7 +183,7 @@ void sendUserMessage(int sock, msg userMessage){
 		userMessage.userDestiny.nBytes = n;
 		
 		
-		userMessage.operation = 4;// send file operation
+		userMessage.operation = 1;// send file operation
 		//end
 		
 		//message to be sended
