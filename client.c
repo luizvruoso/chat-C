@@ -16,11 +16,12 @@ pthread_mutex_t mutex;
 
 void messageHandler(int * sockfd);
 void * recvMsg(void * sockfd);
-
+void sendFile(int , msg );
 int main()
 {
 	int sockfd, connfd;
 	struct sockaddr_in servaddr, cli;
+
 
 	// socket create and varification
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -59,6 +60,8 @@ void messageHandler(int *sockfd){
 	serverResponse serverResp;
 	pthread_t thread_id;
 	char msg1[1024];
+	int  op;
+	
 	printf("Your username : ");
 	n = 0;
 	while ((buff[n++] = getchar()) != '\n');
@@ -88,19 +91,83 @@ void messageHandler(int *sockfd){
 	//END
 
 	for (;;) {
+		menu(&op);
 
+		switch(op){
+			case 1: 
+				sendUserMessage(*sockfd, userMessage);
+			break;
+			case 2:
+				sendFile(*sockfd, userMessage);
+			break;
+
+		}
+		
+	}
+}
+
+
+
+void sendFile(int sock, msg userMessage){
+	serverResponse server;
+
+	//SINALIZANDO PARA O SERVIDOR O ENVIO DE UM ARQUIVO
+	userMessage.operation = 2;
+	printf("user %d\n\n", userMessage.operation);
+	write(sock, (char *) &userMessage, sizeof(msg));
+	//FIM
+	
+
+	char data[MAX] = {0};
+	FILE *filePointer;
+
+	
+
+	filePointer = fopen("file.txt", "r");
+
+	
+
+	while(!feof(filePointer)) {
+		fgets(server.payload.message.content, sizeof(server.payload.message.content), filePointer);
+		printf("get\n\n");
+		if (write(sock, (char *) &server, sizeof(serverResponse)) == -1) {
+			perror("error in sending data");
+			break;
+			//exit(1);
+		}
+		printf("enviou\n\n");
+
+		//bzero(data, MAX);
+	}
+	printf("Cheguei no final \n\n");
+
+	fclose(filePointer);
+	server.operation = -1;
+	write(sock, (char *) &server, sizeof(serverResponse));
+	return ;
+
+
+
+}
+
+
+void sendUserMessage(int sock, msg userMessage){
+		char buff[MAX]={0};
+		int n;
 		//send message to
 		bzero(buff, sizeof(buff));
 		printf("\nEnter the user : ");
 		n = 0;
 		while ((buff[n++] = getchar()) != '\n');
 		n--;
-		//bzero(userMessage.userDestiny.content, 1024);
+		bzero(userMessage.userDestiny.content, 1024);
 		strncpy(userMessage.userDestiny.content, buff, n);	
 		userMessage.userDestiny.nBytes = n;
-		userMessage.operation = 1;
+		
+		
+		userMessage.operation = 4;// send file operation
 		//end
-
+		
 		//message to be sended
 		bzero(buff, sizeof(buff));
 		printf("\n\nEnter the string : ");
@@ -115,21 +182,28 @@ void messageHandler(int *sockfd){
 			printf("Client Exit...\n");
 
 			userMessage.operation = 4; //exit operation
-			write(*sockfd, (char *) &userMessage, sizeof(msg));
-			close(*sockfd);
-			break;
+			write(sock, (char *) &userMessage, sizeof(msg));
+			close(sock);
+			exit(1);
 		}
 
-
-
-		write(*sockfd, (char *) &userMessage, sizeof(msg));
-
-
 		
 
+		write(sock, (char *) &userMessage, sizeof(msg));
 
-		
-	}
+		// envio 
+}
+
+
+void menu(int * op){
+
+	printf("\n1 - Send Message \n");
+	printf("2 - Send File \n");
+	printf("3 - Exit \n");
+
+	scanf("%d", op);
+	getchar();
+	
 }
 
 

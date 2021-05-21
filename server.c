@@ -29,7 +29,43 @@ user clients[50];
 void * registerUser(void *);
 void sendToUser(msg * );
 void endUserSock(char * );
+void recieveFile(int );
 // Driver function
+
+void writeFile(int sockfd) {
+	FILE *fp;
+	//char *filename = "received.txt";
+	char buffer[MAX];
+	int n;
+	serverResponse server;
+
+	printf("AAAAA \n\n");
+
+	fp = fopen("received.txt", "w");
+
+	printf("AAAAA \n\n");
+
+	while(1) {
+		printf("BBBB \n\n");
+
+		read(sockfd, (serverResponse *) &server, sizeof(serverResponse));
+
+		if(server.operation == -1){ //terminou o envio
+			break;
+		}else{
+			printf("Adadasd %s\n", server.payload.message.content);
+
+			fprintf(fp, "%s", server.payload.message.content);
+			//bzero(buffer, MAX);
+			printf("BBBB \n\n");
+		}		
+		
+
+	}
+	fclose(fp);
+	return;
+}
+
 int main() {
 	int sockfd, connfd, len;
 	struct sockaddr_in servaddr, cli;
@@ -66,7 +102,6 @@ int main() {
 		printf("Server listening..\n");
 
 	len = sizeof(cli);
-
 	// Accept the data packet from client and verification
 	for(int i = 0; i < 20; i++) {
 
@@ -156,7 +191,7 @@ void * registerUser(void * sockfd)
 		//memcpy(userMessage.message,'\0', sizeof(userMessage.message));
 		//strncpy(userMessage.message, '\0', 1023);
 		read(sock, (msg *) &userMessage, sizeof(msg));
-		printf("msg do read: %s \n\n\n", userMessage.message.content);
+		printf("msg do read: %d \n\n\n", userMessage.operation);
 
 		switch (userMessage.operation){
 			case 1:
@@ -164,7 +199,7 @@ void * registerUser(void * sockfd)
 			break;
 
 			case 2:
-					//list to user, list of contacts
+				writeFile(sock);
 			break;
 			case 3:
 					//send file
