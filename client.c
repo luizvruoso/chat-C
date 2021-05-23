@@ -546,7 +546,7 @@ void writeFile(int sockfd) {
 			
 			//printf("BBBB \n\n");
 		}	
-		usleep(15);
+		//usleep(15);
 		
 		//printf("hhhoi \n\n\n");
 	}
