@@ -14,6 +14,7 @@
 #include <net/if.h>
 #include <sys/ipc.h>            /* for all IPC function calls */
 #include <sys/ioctl.h>
+#include <unistd.h>
 
 #define MAX 1024
 #define PORT 2020
@@ -96,7 +97,6 @@ void messageHandler(int *sockfd, char * localIP){
 	while ((buff[n++] = getchar()) != '\n');
 	n--;
 	printf("\n");
-	__fpurge(stdin);
 
 	strncpy(userMessage.username.content, buff, n);
 	userMessage.username.nBytes = n;
@@ -122,8 +122,8 @@ void messageHandler(int *sockfd, char * localIP){
 	//END
 
 	for (;;) {
-		menu(&op);
 
+		menu(&op);
 		switch(op){
 			case 1: 
 				sendUserMessage(*sockfd, userMessage);
@@ -194,7 +194,7 @@ void sendFile(int sock, msg userMessage, char * ip){
 	servaddr.sin_addr.s_addr = inet_addr(localIP);
 	servaddr.sin_port = htons(PORT_TRANSFER);
 	
-
+	printf("%s \n", localIP);
 	sleep(2);
 	// connect the client socket to server socket
 	if (connect(sock2, (SA*)&servaddr, sizeof(servaddr)) != 0) {
@@ -314,9 +314,9 @@ void sendFile(int sock, msg userMessage, char * ip){
 
 	fclose(filePointer);
 	server.operation = -1;
-	sleep(2);
+	
 	write(sock, (char *) &server, sizeof(serverResponse));
-
+	sleep(2);
 	close(sock);
 	return ;
 
@@ -372,7 +372,6 @@ void sendUserMessage(int sock, msg userMessage){
 
 
 void menu(int * op){
-	
 
 	printf("\n1 - Send Message \n");
 	printf("2 - Send File \n");
@@ -394,6 +393,7 @@ void * recvMsg(void * sockfd){
 
 	//printw("%d \n", MAX_LINES);
 	while(1){
+		printf("read \n");
 		read(sock, (serverResponse *) &server, sizeof(serverResponse));
 		
 		switch(server.operation){
@@ -424,6 +424,7 @@ void * recvMsg(void * sockfd){
 				//THREAD TO RECIVE INCOMING MESSAGES
 				pthread_create(&thread_id, NULL, (void *)fileReceive, &sock);
 				//END
+				
 
 			break;
 		}
@@ -488,7 +489,12 @@ void * fileReceive(void * sockfd){
 
 	close(connfd);
 	//close(sock);
-	return;
+
+	printf("Type something to continue...\n");
+	
+	pthread_exit(pthread_self());
+
+	
 }
 
 void writeFile(int sockfd) {
@@ -539,13 +545,15 @@ void writeFile(int sockfd) {
 			bzero(buffer, sizeof(buffer));
 			
 			//printf("BBBB \n\n");
-		}		
+		}	
+		usleep(15);
 		
 		//printf("hhhoi \n\n\n");
 	}
-
-	printf("terminou \n\n\n");
 	fclose(fp);
+	printf("\nterminou \n\n\n");
+	//fflush(stdin);
+
 	return;
 }
 
