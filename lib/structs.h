@@ -9,7 +9,7 @@ struct {
 	int	operation;
 	charContentOps username;
 	charContentOps message;
-	int myPortNumber;
+	char ip[15];
 	charContentOps userDestiny;
 } typedef msg;
 
@@ -25,5 +25,15 @@ struct {
 
 	int  * socket;
 	char username[1024];
-
+	int portNumber;
+	char ip[15];
+	
 }typedef user;
+
+
+struct{
+
+	char nameFile[40];
+	long long blockSize;
+
+}typedef fileTransfer;

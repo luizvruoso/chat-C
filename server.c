@@ -14,7 +14,7 @@
 #include <pthread.h>
 
 #define MAX 1024
-#define PORT 1234
+#define PORT 2020
 #define SA struct sockaddr
 #define MAXUSERS 20
 
@@ -31,7 +31,7 @@ void sendToUser(msg * );
 void endUserSock(char * );
 void recieveFile(int );
 void writeFile(int);
-
+void returnUserPeerToPeer(int, msg);
 // Driver function
 
 
@@ -139,6 +139,9 @@ void * registerUser(void * sockfd){
 	pthread_mutex_lock(&mutex);
 	
 		clients[POINTER_LAST_POINTER].socket = &sock;
+		strcpy(clients[POINTER_LAST_POINTER].ip, userMessage.ip);
+
+		//printf("Ip usuario Logado %s \n", clients[POINTER_LAST_POINTER].ip);
 		//printf("socket no role: %d \n\n\n", *clients[0].socket);
 		
 		//write(sock, message.message, sizeof(message.message));
@@ -167,7 +170,8 @@ void * registerUser(void * sockfd){
 			break;
 
 			case 2:
-				writeFile(sock);
+				returnUserPeerToPeer(sock, userMessage);
+				//writeFile(sock);
 			break;
 			case 3:
 					//send file
@@ -229,28 +233,41 @@ void sendToUser(msg * userMessage){
 
 void writeFile(int sockfd) {
 	FILE *fp;
-	//char *filename = "received.txt";
-	char buffer[23904];
+	char * buffer;
 	int n;
 	serverResponse server;
+	fileTransfer file;
+	char fileDestiny[40] = {'\0'};
 
-	//printf("AAAAA \n\n");
+	strcpy(fileDestiny, "../received-");
 
-	fp = fopen("../received.mkv", "wb");
+	read(sockfd, (fileTransfer *) &file, sizeof(fileTransfer));
+
+	printf("file name %s \n\n", file.nameFile);
+
+    strncat(fileDestiny, file.nameFile, strlen(file.nameFile));
+
+	printf("name File %s \n", file.nameFile);
+
+	buffer = malloc(file.blockSize);
+
+	printf("buffer size %lld \n", file.blockSize);
+
+	fp = fopen(fileDestiny, "wb");
 
 	//printf("AAAAA \n\n");
 	server.operation = 0;
 	while(1) {
 		//printf("BBBB \n\n");
-		printf("esperando client flag %d \n\n\n", server.operation);
-		//sleep(2);
+		//printf("esperando client flag %d \n\n\n", server.operation);
 		read(sockfd, (serverResponse *) &server, sizeof(serverResponse));
-		printf("hhhoi %d \n\n\n", server.operation);
+		//printf("hhhoi %d \n\n\n", server.operation);
+		//sleep(80);
 
 		if(server.operation == -1){ //terminou o envio
 			break;
 		}else{
-			printf("esperando dados %d \n\n\n");
+			//printf("esperando dados %d \n\n\n");
 			read(sockfd, buffer, sizeof(buffer));
 			//printf(" %s\n", buffer);
 			//fprintf(fp, "%s", buffer);
@@ -260,9 +277,43 @@ void writeFile(int sockfd) {
 			//printf("BBBB \n\n");
 		}		
 		
-		printf("hhhoi \n\n\n");
+		//printf("hhhoi \n\n\n");
 	}
+
 	printf("terminou \n\n\n");
 	fclose(fp);
 	return;
+}
+
+
+void returnUserPeerToPeer(int sock, msg userMessage){
+
+	serverResponse server;
+	
+	pthread_mutex_lock(&mutex);
+	for(int i=0;i<20; i++){
+		//printf("nClient %d\n", sizeof(clients[i].username));
+		//printf("nMsg %d\n", sizeof(userDestiny));
+
+		//printf("Comparacaço %d \n\n\n\n", strncmp(clients[i].username, userDestiny, strlen(clients[i].username)));
+		
+		if(strncmp(clients[i].username, userMessage.userDestiny.content, strlen(clients[i].username)) == 0){
+
+			strncpy(server.payload.message.content, clients[i].ip, 15);
+			server.payload.message.nBytes = 15;
+
+			//envia de volta avisando o destino do usuario
+			write(sock, (char *) &server, sizeof(serverResponse));
+			
+
+			//informa o receptor que chegara um arquivo
+			server.operation = 4;
+			write(*clients[i].socket, (char *) &server, sizeof(serverResponse));
+			
+
+			break;
+		}
+	}
+	pthread_mutex_unlock(&mutex);
+
 }
