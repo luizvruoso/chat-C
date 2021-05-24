@@ -234,12 +234,13 @@ void sendFile(int sock, msg userMessage, char * ip){
 	//printf("Value da linha %s \n\n\n", server.payload.message.content);
 
 	//sleep(80);
-	
+	/*
 	if(size <= 10240){
 		vectorSize = size;
 	}else{
-		vectorSize = 23552;
-	}
+		vectorSize = 1048576;
+	}*/
+	vectorSize = 1024;
 
 
 
@@ -265,6 +266,7 @@ void sendFile(int sock, msg userMessage, char * ip){
 	//server.operation = 2;
 	int k = 1;
 	int countLoading = 1;
+	int sizeAux = 0;
 	size_t result;
 	do{
 		
@@ -278,9 +280,13 @@ void sendFile(int sock, msg userMessage, char * ip){
 			//exit(1);
 		}
 		
-		result = fread(buffer, 1, sizeof(buffer), filePointer);
-		//printf("result %d \n \n", result);
-		write(sock, buffer, sizeof(buffer));
+		result = fread(buffer, 1, 1024, filePointer);
+		printf("result %d \n \n", sizeof(buffer));
+
+		
+		
+
+		write(sock, buffer, 1024);
 		
 		//printf("enviou\n\n");
 		bzero(buffer, sizeof(buffer));
@@ -538,10 +544,10 @@ void writeFile(int sockfd) {
 			break;
 		}else{
 			//printf("esperando dados %d \n\n\n");
-			read(sockfd, buffer, sizeof(buffer));
+			read(sockfd, buffer, 1024);
 			//printf(" %s\n", buffer);
 			//fprintf(fp, "%s", buffer);
-			fwrite(buffer, 1, sizeof(buffer), fp);
+			fwrite(buffer, 1, 1024, fp);
 			bzero(buffer, sizeof(buffer));
 			
 			//printf("BBBB \n\n");
