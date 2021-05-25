@@ -37,3 +37,11 @@ struct{
 	long long blockSize;
 
 }typedef fileTransfer;
+
+
+struct{
+	int i;
+	char message[1024];
+	char from[1024]
+
+}typedef messageReceived;

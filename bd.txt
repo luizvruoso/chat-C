@@ -1,6 +1,4 @@
 username=luiz;
 status=ONLINE;
-username=hoiVintas;
-status=ONLINE;
 username=vintas;
 status=ONLINE;
