@@ -1,4 +1,10 @@
 username=luiz;
-status=ONLINE;
+status=OFFLINE;
 username=vintas;
+status=ONLINE;
+username=hoiVintas;
+status=OFFLINE;
+username=Vi;
+status=OFFLINE;
+username=toVintas;
 status=ONLINE;

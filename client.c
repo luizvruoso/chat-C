@@ -100,8 +100,22 @@ void messageHandler(int *sockfd, char * localIP){
 
 	//server response:
 	read(*sockfd, (serverResponse *) &serverResp, sizeof(serverResponse));
-	if(serverResp.operation == 1){
-		printf("\n\nServer answer: %s", serverResp.payload.message.content);
+
+
+	if(serverResp.operation == 1 || serverResp.operation == 6){
+		if(serverResp.operation == 6){
+			printf("\n\nYou have unread messages\n\n");
+			while(1){
+				read(*sockfd, (serverResponse *) &serverResp, sizeof(serverResponse));
+
+				if(serverResp.operation == -1) break;		
+				else{
+					printf("\n Message: %s", serverResp.payload.message.content);
+				}
+			}
+		}else{
+			printf("\n\nServer answer: %s", serverResp.payload.message.content);
+		}
 	}else{
 		printf("\n Server not responding ...\n");
 		close(*sockfd);

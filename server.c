@@ -1,3 +1,12 @@
+/*
+*	Server operations:
+		1 -
+*		2 -
+*
+*/
+
+
+
 #include <stdio.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -100,14 +109,12 @@ void * registerUser(void * sockfd){
 	int sock = *((int *) sockfd);
 
 	read(sock, (struct msg *) &userMessage, sizeof(userMessage));
-
 	printf("User : %s is now connected \n", userMessage.username.content);
-	strcpy(message.payload.message.content, "Connected...");
-	message.operation = 1;
-	message.statusCode = 1; 
 
-	write(sock, (char *) &message, sizeof(serverResponse));
+	//waiting to server guidelines
 
+
+	//SETANDO USUARIO ONLINE E REGISTRANDO
 	if(searchUser(userMessage.username.content) == 0) {
 		//usuario ja registrado, fica online
 		printStatusAtRightPosition(userMessage.username.content, "ONLINE");
@@ -115,6 +122,43 @@ void * registerUser(void * sockfd){
 		//novo usuario é registrado e fica online
 		printAtEndOfFile(userMessage.username.content, "ONLINE");
 	}
+	//FIM
+
+	//CONFERINDO SE HÁ MENSAGENS NAO LIDAS
+	if(hasMessage(userMessage.username.content) == 1){
+		message.operation = 6;
+		message.statusCode = 1; 
+		//strcpy(message.payload.message.content, "Connected...");
+
+		write(sock, (char *) &message, sizeof(serverResponse));
+
+		char *messageString;
+
+		while(hasMessage(userMessage.username.content) == 1){
+			message.operation = 6;
+			message.statusCode = 1;
+			messageString = getMessage(userMessage.username.content);
+
+			strncpy(message.payload.message.content,messageString, 1023);
+			write(sock, (char *) &message, sizeof(serverResponse));
+			
+		}
+			message.operation = -1;
+			message.statusCode = -1;
+			write(sock, (char *) &message, sizeof(serverResponse));
+	//FIM
+
+	}else{
+		
+		strcpy(message.payload.message.content, "Connected...");
+		message.operation = 1;
+		message.statusCode = 1; 
+		write(sock, (char *) &message, sizeof(serverResponse));
+
+	}
+
+
+
 
 	pthread_mutex_lock(&mutex);
 	
@@ -165,6 +209,14 @@ void sendToUser(msg * userMessage){
 	//printf("hoiii %s\n", userDestiny);
 	serverResponse server;
 	
+	if(isUserOnline(userMessage->userDestiny.content) == 1) {
+			printf("\nOFFLINE\n");
+			FILE *fp;
+			fp = fopen("messages.txt", "a+");
+			fprintf(fp, "\ntoWhom=%s;\nmessage=%s;", userMessage->userDestiny.content, userMessage->message.content);
+			fclose(fp);
+	}else{
+	
 	pthread_mutex_lock(&mutex);
 	for(int i=0;i<20; i++){
 		//printf("nClient %d\n", sizeof(clients[i].username));
@@ -172,27 +224,33 @@ void sendToUser(msg * userMessage){
 
 		//printf("Comparacaço %d \n\n\n\n", strncmp(clients[i].username, userDestiny, strlen(clients[i].username)));
 		
+		
+
 		if(strncmp(clients[i].username, userMessage->userDestiny.content, strlen(clients[i].username)) == 0){
 
-			server.operation = 2; //incoming message
-			strcpy(server.payload.message.content, userMessage->message.content);
-			server.payload.message.nBytes = userMessage->message.nBytes;
-			strcpy(server.payload.userDestiny.content, userMessage->userDestiny.content);
-			server.payload.userDestiny.nBytes = userMessage->userDestiny.nBytes;
+				server.operation = 2; //incoming message
+				strcpy(server.payload.message.content, userMessage->message.content);
+				server.payload.message.nBytes = userMessage->message.nBytes;
+				strcpy(server.payload.userDestiny.content, userMessage->userDestiny.content);
+				server.payload.userDestiny.nBytes = userMessage->userDestiny.nBytes;
 
 
 
 
-			printf("username: %s\n", userMessage->userDestiny.content);
-			//printf("list: %s\n", clients[i].username);
-			
-			//printf("hoiii %d\n", sizeof(msg1));
-			printf("username: %s \n\n", userMessage->message.content);
-			write(*clients[i].socket, (char *) &server, sizeof(serverResponse));
-			break;
-		}
+				printf("username: %s\n", userMessage->userDestiny.content);
+				//printf("list: %s\n", clients[i].username);
+				
+				//printf("hoiii %d\n", sizeof(msg1));
+				printf("username: %s \n\n", userMessage->message.content);
+				write(*clients[i].socket, (char *) &server, sizeof(serverResponse));
+				break;
+			}
 	}
 	pthread_mutex_unlock(&mutex);
+	}
+
+
+	
 
 }
 

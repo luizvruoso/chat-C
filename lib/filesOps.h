@@ -116,6 +116,40 @@ void printStatusAtRightPosition(char *username, char *status){
 
 }
 
+int isUserOnline(char *username) {
+    FILE *file;
+    file = fopen(FILE_NAME, "r");
+
+    if(file == NULL) {
+        fprintf(stderr, "Could not open input file\n");
+        exit(1);
+    }
+
+    char line[MAX] = {'\0'};
+    char auxStr[MAX] = {'\0'};
+    char usernameCompare[MAX] = {'\0'};
+
+    while(!feof(file)) {
+
+        strcpy(auxStr, fgets(line, sizeof(line), file));
+        sscanf(auxStr, "%*[^=]=%[^;]", usernameCompare); 
+
+        if (strcmp(usernameCompare, username) == 0) {
+	
+            fgets(line, sizeof(line), file);
+            sscanf(line, "%*[^=]=%[^;]", usernameCompare);
+
+            if(strcmp(usernameCompare, "OFFLINE") == 0) {
+		    fclose(file);
+		    return 1;
+	    }  
+        }
+    }
+    fclose(file);
+    return 0;
+}
+
+
 int isEqualsToUsername(char *username, int n){
 
 	char aux[n];
@@ -174,3 +208,122 @@ void printAtEndOfFile(char *buff,  char *userStatus){
 	fclose(file);
 }
 
+char *getMessage(char *username) {
+    FILE *file;
+    file = fopen("messages.txt", "r");
+    char *message;
+    message = malloc (sizeof (char) * 15);
+
+    if(file == NULL) {
+        fprintf(stderr, "Could not open input file\n");
+        exit(1);
+    }
+
+    char line[MAX] = {'\0'};
+    char auxStr[MAX] = {'\0'};
+    char usernameCompare[MAX] = {'\0'};
+    int i = 0;
+    while(!feof(file)) {
+
+        strcpy(auxStr, fgets(line, sizeof(line), file));
+        sscanf(auxStr, "%*[^=]=%[^;]", usernameCompare); 
+
+        if (strcmp(usernameCompare, username) == 0) {
+            i++;
+            fgets(line, sizeof(line), file);
+            sscanf(line, "%*[^=]=%[^;]", usernameCompare);
+	        strcpy(message, usernameCompare);
+			fclose(file);
+            deleteLineFromFile(i);
+            //printf("\nLINHA: %d", i);
+            deleteLineFromFile(i - 1);
+            //printf("\nLINHA2: %d", i-1);
+			
+
+	        return message;
+        }else{
+			i++;
+		}
+        printf("PASSOU\n");
+        printf("PASSOU3: %d\n", i);
+    }
+	fclose(file);
+
+    return "false";
+}
+void deleteLineFromFile(int lineNumber) {
+
+    FILE *fileptr1, *fileptr2;
+    char line[MAX] = {'\0'};
+    //open file in read mode
+    fileptr1 = fopen("messages.txt", "r");
+
+    //rewind(fileptr1);
+    fseek(fileptr1, 0, SEEK_SET);
+
+
+    fileptr2 = fopen("replica.txt", "w");
+    //ch = getc(fileptr1);
+    int i = 0;
+
+    while(!feof(fileptr1)) {
+		bzero(line, sizeof(line));
+		if(i == lineNumber){
+			fgets(line, sizeof(line), fileptr1);
+			printf("dve ser excluida %d \n\n", i);
+		}else{
+			fgets(line, sizeof(line), fileptr1);
+			fprintf(fileptr2, "%s", line);
+			printf("line: %s %d\n\n", line, i);
+		}	
+		
+		i++;
+    }
+	
+    fclose(fileptr1);
+    fclose(fileptr2);
+    remove("messages.txt");
+    rename("replica.txt", "messages.txt");
+	
+   /* fileptr1 = fopen("messages.txt", "r");
+   
+    fclose(fileptr1);*/
+}
+
+
+int hasMessage(char *username) {
+    FILE *file;
+    file = fopen("messages.txt", "r");
+    char *message;
+    message = malloc (sizeof (char) * 15);
+
+    if(file == NULL) {
+        fprintf(stderr, "Could not open input file\n");
+        exit(1);
+    }
+
+
+
+    char line[MAX] = {'\0'};
+    char auxStr[MAX] = {'\0'};
+    char usernameCompare[MAX] = {'\0'};
+    int i = 0;
+
+    while(!feof(file)) {
+		bzero(auxStr, sizeof(auxStr));
+		fgets(line, sizeof(line), file);
+        strcpy(auxStr, line);
+        sscanf(auxStr, "%*[^=]=%[^;]", usernameCompare); 
+
+        if (strcmp(usernameCompare, username) == 0) {
+			fclose(file);
+			
+
+		    return 1;
+        }
+
+	    i++;
+    }
+	fclose(file);
+    return 0;
+}
