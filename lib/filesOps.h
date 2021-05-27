@@ -128,10 +128,10 @@ int isUserOnline(char *username) {
     char line[MAX] = {'\0'};
     char auxStr[MAX] = {'\0'};
     char usernameCompare[MAX] = {'\0'};
-
     while(!feof(file)) {
 
-        strcpy(auxStr, fgets(line, sizeof(line), file));
+		fgets(line, sizeof(line), file);
+        strcpy(auxStr, line);
         sscanf(auxStr, "%*[^=]=%[^;]", usernameCompare); 
 
         if (strcmp(usernameCompare, username) == 0) {

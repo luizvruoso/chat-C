@@ -1,0 +1,12 @@
+toWhom=hoiVintas;
+message=VC TA LOUCO;
+toWhom=hoiVintas;
+message=VC TA LOUCO;
+toWhom=hoiVintas;
+message=VC TA LOUCO;
+toWhom=hoiVintas;
+message=VC TA LOUCO;
+toWhom=hoiVintas;
+message=VC TA LOUCO;
+toWhom=hoiVintas;
+message=VC TA LOUCO;

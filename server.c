@@ -208,7 +208,6 @@ void sendToUser(msg * userMessage){
 	//printf("hoiii %s \n\n", msg1);
 	//printf("hoiii %s\n", userDestiny);
 	serverResponse server;
-	
 	if(isUserOnline(userMessage->userDestiny.content) == 1) {
 			printf("\nOFFLINE\n");
 			FILE *fp;
@@ -216,7 +215,8 @@ void sendToUser(msg * userMessage){
 			fprintf(fp, "\ntoWhom=%s;\nmessage=%s;", userMessage->userDestiny.content, userMessage->message.content);
 			fclose(fp);
 	}else{
-	
+		printf("aaaoi\n\n\n");
+
 	pthread_mutex_lock(&mutex);
 	for(int i=0;i<20; i++){
 		//printf("nClient %d\n", sizeof(clients[i].username));
