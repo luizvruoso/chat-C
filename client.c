@@ -350,24 +350,30 @@ void sendFile(int sock, msg userMessage, char * ip){
 }
 
 void sendUserMessage(int sock, msg userMessage){
-		char buff[MAX]={0};
+char buff[MAX]={0};
+		char buffUser[MAX] = {0};
+		char buffSpecificUser[MAX] = {0};
 		int n;
+		int i = 0;
+		int j = 0;
+		int nUser;
+
 		//send message to
-		bzero(buff, sizeof(buff));
+		bzero(buffUser, sizeof(buffUser));
 		printf("\nEnter the user : ");
-		n = 0;
-		while ((buff[n++] = getchar()) != '\n');
-		n--;
-		bzero(userMessage.userDestiny.content, 1024);
-		strncpy(userMessage.userDestiny.content, buff, n);	
-		userMessage.userDestiny.nBytes = n;
+		nUser = 0;
+		while ((buffUser[nUser++] = getchar()) != '\n');
+		nUser--;
+		// bzero(userMessage.userDestiny.content, 1024);
+		// strncpy(userMessage.userDestiny.content, buffUser, nUser);	
+		// userMessage.userDestiny.nBytes = nUser;
 		
 		
-		userMessage.operation = 1;// send file operation
+		// userMessage.operation = 1;// send file operation
 		//end
 		
 		//message to be sended
-		bzero(buff, sizeof(buff));
+		// bzero(buff, sizeof(buff));
 		printf("\n\nEnter the string : ");
 		n = 0;
 		while ((buff[n++] = getchar()) != '\n');
@@ -385,12 +391,28 @@ void sendUserMessage(int sock, msg userMessage){
 			exit(1);
 		}
 
-		
+		while(i <= nUser) {
+			if(buffUser[i] == ' ' || i == nUser) {
+				bzero(userMessage.userDestiny.content, 1024);
+				userMessage.userDestiny.nBytes = 0;
+				strncpy(userMessage.userDestiny.content, buffSpecificUser, j);	
+				userMessage.userDestiny.nBytes = j;
+				userMessage.operation = 1;
+				i++;
+				j = 0;
+				bzero(buffSpecificUser, sizeof(buffSpecificUser));
 
+				write(sock, (char *) &userMessage, sizeof(msg));
+				sleep(2);
+			} else {
+				buffSpecificUser[j] = buffUser[i];
+				i++;
+				j++;
+			}
+		}
 
-
-		write(sock, (char *) &userMessage, sizeof(msg));
-		sleep(2);
+		// write(sock, (char *) &userMessage, sizeof(msg));
+		// sleep(2);
 		// envio 
 }
 
