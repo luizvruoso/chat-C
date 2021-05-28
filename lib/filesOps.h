@@ -1,6 +1,10 @@
 #define MAX 1024
 #define FILE_NAME  "bd.txt"
 #define TEMP_FILE_NAME  "temp.txt"
+#define MESSAGES_FILE_NAME "messages.txt"
+
+void valueAfterEquals(char *, char *);
+void deleteLineFromFile(int);
 
 int searchUser(char *username) {
 
@@ -41,43 +45,92 @@ int searchUser(char *username) {
 	return 1;
 }
 
-void printContactList() {
-	FILE *f;
+int numberOfLines() {
+    FILE *file;
+    file = fopen(FILE_NAME, "r");
+    int lines = 0;
+    char ch;
 
-	f = fopen(FILE_NAME,"r");
-	int i = 0;
+    while(!feof(file)) {
+  	ch = fgetc(file);
+
+  	if(ch == '\n') 
+    		lines++;
+  	
+    }
+
+	fclose(file);
+	printf("Linhas: %d\n", lines);
+	return lines;
+}
+
+char *printContactList(int count) {
+    FILE *file;
+
+    file = fopen(FILE_NAME,"r");
+    int i = 0;
 
     char line[MAX] = {'\0'};
     char destiny[MAX] = {'\0'};
+    char aux[MAX] = "User ";
+    char secAux[MAX] = " is ";
+    char *message;
 
-    while(!feof(f)) {
+    message = malloc (sizeof (char) * 40);
+    bzero(message, sizeof(message));
 
-		bzero(destiny, sizeof(destiny));
-
-		fgets(line, sizeof(line), f);
-      	valueAfterEquals(destiny, line);
-		printf("User: %s ", destiny);
-		
-		bzero(destiny, sizeof(destiny));
-
-		fgets(line, sizeof(line), f);
-		valueAfterEquals(destiny, line);
-		printf("is: %s \n", destiny);
-	}
-}
-
-void printStatusAtRightPosition(char *username, char *status){
-    FILE * file;
-    FILE * tempFile;
-    file = fopen(FILE_NAME, "a+");
-    tempFile = fopen(TEMP_FILE_NAME, "w");
-
-	char buff[MAX] = {0};
-    char aux[MAX] = {'\0'};
-	if(file == NULL) {
+    if(file == NULL) {
         fprintf(stderr, "Could not open input file\n");
         exit(1);
     }
+
+    while(!feof(file)) {
+	
+		if(count == i) {
+			
+			bzero(destiny, sizeof(destiny));
+
+			fgets(line, sizeof(line), file);
+			valueAfterEquals(destiny, line);
+			strcat(aux, destiny);
+
+			bzero(destiny, sizeof(destiny));
+			
+			fgets(line, sizeof(line), file);
+			valueAfterEquals(destiny, line);
+
+			strcat(aux, secAux);
+			strcat(aux, destiny);
+			strcat(message, aux);
+
+			fclose(file);
+			return message;
+		}
+	
+		fgets(line, sizeof(line), file);
+		fgets(line, sizeof(line), file);
+		i++;
+	}
+
+	return NULL;
+}
+
+void printStatusAtRightPosition(char *username, char *status) {
+
+    FILE * file;
+    FILE * tempFile;
+
+    file = fopen(FILE_NAME, "a+");
+    tempFile = fopen(TEMP_FILE_NAME, "w");
+
+    char buff[MAX] = {'\0'};
+    char aux[MAX]  = {'\0'};
+
+    if(file == NULL) {
+        fprintf(stderr, "Could not open input file\n");
+        exit(1);
+    }
+
     if(tempFile == NULL) {
         fprintf(stderr, "Could not open temp file\n");
         exit(1);
@@ -88,35 +141,33 @@ void printStatusAtRightPosition(char *username, char *status){
 	
 	while(!feof(file)) {
 		if( i % 2 == 0 ) {
-            bzero(aux, sizeof(aux));
+            		bzero(aux, sizeof(aux));
 			valueAfterEquals(aux, buff);
 
 			if( strcmp(aux, username ) == 0 ) {
-                //encontrei o usuario
-                fprintf(tempFile, "username=%s;\n", username);
-                fprintf(tempFile, "status=%s;\n", status);
-		        fgets(buff, 1024, file);
-                i++;
-			}else{
-                //printf("errad %s %d\n", aux, i);
+                		//encontrei o usuario
+               	 		fprintf(tempFile, "username=%s;\n", username);
+                		fprintf(tempFile, "status=%s;\n", status);
+		        	fgets(buff, 1024, file);
+                		i++;
+			} else
+                		fprintf(tempFile, "%s", buff);
+		} else 
+            		fprintf(tempFile, "%s", buff);
+       	 	
 
-                fprintf(tempFile, "%s", buff);
-            }
-		}else{
-            fprintf(tempFile, "%s", buff);
-        }
 		fgets(buff, 1024, file);
 		i++;
 	}
 
-   fclose(file);
-    fclose(tempFile);
-    remove(FILE_NAME);  		// remove the original file 
-    rename(TEMP_FILE_NAME, FILE_NAME);
-
+   	fclose(file);
+    	fclose(tempFile);
+    	remove(FILE_NAME); 
+    	rename(TEMP_FILE_NAME, FILE_NAME);
 }
 
 int isUserOnline(char *username) {
+
     FILE *file;
     file = fopen(FILE_NAME, "r");
 
@@ -128,9 +179,10 @@ int isUserOnline(char *username) {
     char line[MAX] = {'\0'};
     char auxStr[MAX] = {'\0'};
     char usernameCompare[MAX] = {'\0'};
+
     while(!feof(file)) {
 
-		fgets(line, sizeof(line), file);
+	fgets(line, sizeof(line), file);
         strcpy(auxStr, line);
         sscanf(auxStr, "%*[^=]=%[^;]", usernameCompare); 
 
@@ -145,6 +197,7 @@ int isUserOnline(char *username) {
 	    }  
         }
     }
+
     fclose(file);
     return 0;
 }
@@ -153,12 +206,14 @@ int isUserOnline(char *username) {
 int isEqualsToUsername(char *username, int n){
 
 	char aux[n];
-
 	int k = 0;
-	while(username[k] != '='){ //copio ate o igual
+
+	//copio ate o igual
+	while(username[k] != '='){ 
 		aux[k] = username[k]; 
 		k++;
 	}
+	
 	//pego o pre fixo copiado e comparo com o conteudo que desejo encontrar
 	if(strcmp(aux, "username")) return 1;
 	else return -1;
@@ -167,13 +222,10 @@ int isEqualsToUsername(char *username, int n){
 
 void valueAfterEquals(char * destiny, char * buffer){
 
-	
 	int k = 0;
 	while(buffer[k] != '='){ //encontrar o fim do igual
 		k++;
 	}
-	//printf("buffer k %s\n", buffer);
-	//printf("buffer at k %c\n", buffer[k]);
 
 	int i = 0;
 	k++; //pular o '='
@@ -182,25 +234,12 @@ void valueAfterEquals(char * destiny, char * buffer){
 		k++;
 		i++;
 	}
-	//printf("aux31321  %s\n", destiny);
 }
 
 void printAtEndOfFile(char *buff,  char *userStatus){
+
 	FILE * file;
 	file = fopen(FILE_NAME, "a+");
-	char c;
-	/*c = fgetc( file );
-	printf("\ncu nostro %c\n", c);*/
-	/*while(1) {
-
-		c = fgetc( file ); // reading the file
-		if(feof(file)){
-			printf("\ncu nostro %c\n", c);
-			break;
-		};
-		//printf ( "%c", c ) ;
-
-	}*/
 
 	fprintf(file, "username=%s;\n", buff);
 	fprintf(file, "status=%s;\n", userStatus);
@@ -209,8 +248,9 @@ void printAtEndOfFile(char *buff,  char *userStatus){
 }
 
 char *getMessage(char *username) {
+
     FILE *file;
-    file = fopen("messages.txt", "r");
+    file = fopen(MESSAGES_FILE_NAME, "r");
     char *message;
     message = malloc (sizeof (char) * 15);
 
@@ -225,53 +265,47 @@ char *getMessage(char *username) {
     int i = 0;
     while(!feof(file)) {
 
-        strcpy(auxStr, fgets(line, sizeof(line), file));
+        fgets(line, sizeof(line), file);
+        strcpy(auxStr, line);
         sscanf(auxStr, "%*[^=]=%[^;]", usernameCompare); 
 
         if (strcmp(usernameCompare, username) == 0) {
-            i++;
-            fgets(line, sizeof(line), file);
-            sscanf(line, "%*[^=]=%[^;]", usernameCompare);
+            	i++;
+            	fgets(line, sizeof(line), file);
+            	sscanf(line, "%*[^=]=%[^;]", usernameCompare);
 	        strcpy(message, usernameCompare);
-			fclose(file);
-            deleteLineFromFile(i);
-            //printf("\nLINHA: %d", i);
-            deleteLineFromFile(i - 1);
-            //printf("\nLINHA2: %d", i-1);
-			
+		fclose(file);
 
-	        return message;
-        }else{
-			i++;
-		}
-        printf("PASSOU\n");
-        printf("PASSOU3: %d\n", i);
+            	deleteLineFromFile(i);
+            	deleteLineFromFile(i - 1);	
+
+		return message;
+        }else 
+		i++;
     }
-	fclose(file);
 
-    return "false";
+    fclose(file);
+    return NULL;
 }
 void deleteLineFromFile(int lineNumber) {
 
     FILE *fileptr1, *fileptr2;
     char line[MAX] = {'\0'};
-    //open file in read mode
-    fileptr1 = fopen("messages.txt", "r");
 
-    //rewind(fileptr1);
+    fileptr1 = fopen(MESSAGES_FILE_NAME, "r");
+
     fseek(fileptr1, 0, SEEK_SET);
 
-
     fileptr2 = fopen("replica.txt", "w");
-    //ch = getc(fileptr1);
-    int i = 0;
 
+    int i = 0;
     while(!feof(fileptr1)) {
 		bzero(line, sizeof(line));
+
 		if(i == lineNumber){
 			fgets(line, sizeof(line), fileptr1);
 			printf("dve ser excluida %d \n\n", i);
-		}else{
+		} else {
 			fgets(line, sizeof(line), fileptr1);
 			fprintf(fileptr2, "%s", line);
 			printf("line: %s %d\n\n", line, i);
@@ -282,18 +316,16 @@ void deleteLineFromFile(int lineNumber) {
 	
     fclose(fileptr1);
     fclose(fileptr2);
-    remove("messages.txt");
-    rename("replica.txt", "messages.txt");
-	
-   /* fileptr1 = fopen("messages.txt", "r");
-   
-    fclose(fileptr1);*/
+
+    remove(MESSAGES_FILE_NAME);
+    rename("replica.txt", MESSAGES_FILE_NAME);
 }
 
 
 int hasMessage(char *username) {
+
     FILE *file;
-    file = fopen("messages.txt", "r");
+    file = fopen(MESSAGES_FILE_NAME, "r");
     char *message;
     message = malloc (sizeof (char) * 15);
 
@@ -302,28 +334,25 @@ int hasMessage(char *username) {
         exit(1);
     }
 
-
-
     char line[MAX] = {'\0'};
     char auxStr[MAX] = {'\0'};
     char usernameCompare[MAX] = {'\0'};
     int i = 0;
 
     while(!feof(file)) {
-		bzero(auxStr, sizeof(auxStr));
-		fgets(line, sizeof(line), file);
+	bzero(auxStr, sizeof(auxStr));
+	fgets(line, sizeof(line), file);
         strcpy(auxStr, line);
         sscanf(auxStr, "%*[^=]=%[^;]", usernameCompare); 
 
         if (strcmp(usernameCompare, username) == 0) {
-			fclose(file);
-			
-
-		    return 1;
+		fclose(file);
+		return 1;
         }
 
-	    i++;
+	i++;
     }
-	fclose(file);
+
+    fclose(file);
     return 0;
 }

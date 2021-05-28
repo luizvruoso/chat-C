@@ -1,12 +1,2 @@
 toWhom=hoiVintas;
-message=VC TA LOUCO;
-toWhom=hoiVintas;
-message=VC TA LOUCO;
-toWhom=hoiVintas;
-message=VC TA LOUCO;
-toWhom=hoiVintas;
-message=VC TA LOUCO;
-toWhom=hoiVintas;
-message=VC TA LOUCO;
-toWhom=hoiVintas;
-message=VC TA LOUCO;
+message=VAI POR FAVOR;

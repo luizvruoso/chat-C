@@ -1,12 +1,3 @@
-/*
-*	Server operations:
-		1 -
-*		2 -
-*
-*/
-
-
-
 #include <stdio.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -21,6 +12,7 @@
 #include <signal.h>             /* for kill(), sigsuspend(), others */
 #include <sys/ipc.h>            /* for all IPC function calls */
 #include <pthread.h>
+#include <unistd.h>
 
 #define MAX 1024
 #define PORT 2020
@@ -39,8 +31,8 @@ void recieveFile(int );
 void writeFile(int);
 void returnUserPeerToPeer(int, msg);
 
-
 int main() {
+
 	int sockfd, connfd, len;
 	struct sockaddr_in servaddr, cli;
 	pthread_t thread_id;
@@ -54,6 +46,7 @@ int main() {
 	else
 		printf("Socket successfully created..\n");
 		bzero(&servaddr, sizeof(servaddr));
+
 	// assign IP, PORT
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -92,13 +85,10 @@ int main() {
 
 		pthread_create(&thread_id, NULL, (void *)registerUser, &connfd);
 
-		pthread_mutex_unlock(&mutex);
-
-		
+		pthread_mutex_unlock(&mutex);	
 	}
 	
 	return 0;
-
 }
 
 void * registerUser(void * sockfd){
@@ -111,9 +101,6 @@ void * registerUser(void * sockfd){
 	read(sock, (struct msg *) &userMessage, sizeof(userMessage));
 	printf("User : %s is now connected \n", userMessage.username.content);
 
-	//waiting to server guidelines
-
-
 	//SETANDO USUARIO ONLINE E REGISTRANDO
 	if(searchUser(userMessage.username.content) == 0) {
 		//usuario ja registrado, fica online
@@ -123,7 +110,6 @@ void * registerUser(void * sockfd){
 		printAtEndOfFile(userMessage.username.content, "ONLINE");
 	}
 	//FIM
-
 	//CONFERINDO SE HÁ MENSAGENS NAO LIDAS
 	if(hasMessage(userMessage.username.content) == 1){
 		message.operation = 6;
@@ -143,22 +129,17 @@ void * registerUser(void * sockfd){
 			write(sock, (char *) &message, sizeof(serverResponse));
 			
 		}
-			message.operation = -1;
-			message.statusCode = -1;
-			write(sock, (char *) &message, sizeof(serverResponse));
-	//FIM
+
+		message.operation = -1;
+		message.statusCode = -1;
+		write(sock, (char *) &message, sizeof(serverResponse));
 
 	}else{
-		
 		strcpy(message.payload.message.content, "Connected...");
 		message.operation = 1;
 		message.statusCode = 1; 
 		write(sock, (char *) &message, sizeof(serverResponse));
-
 	}
-
-
-
 
 	pthread_mutex_lock(&mutex);
 	
@@ -174,36 +155,50 @@ void * registerUser(void * sockfd){
 	while(ctrl == 1){
 		read(sock, (msg *) &userMessage, sizeof(msg));
 
-		printf("msg do read: %d \n\n\n", userMessage.operation);
+		printf("Read message: %d \n\n\n", userMessage.operation);
 
 		switch (userMessage.operation){
 			case 1:
 				//send a message
 				sendToUser(&userMessage);
-			break;
+				break;
 			case 2:
 				returnUserPeerToPeer(sock, userMessage);
 				//writeFile(sock);
-			break;
+				break;
 			case 3:
 				//send file
-			break;
-			case 4: 
+				break;
+			case 4: ;
+				int i = 1;
+				char *contactList = '\0';			
+				int maxNumberOfLines = numberOfLines();
+
+				while(i < maxNumberOfLines / 2) {
+					contactList = printContactList(i);
+					message.operation = 3;
+					strncpy(message.payload.message.content, contactList, 1023);
+					write(sock, (char *) &message, sizeof(serverResponse));
+            				i++;	
+				}
+				
+				break;
+			case 5: 
 				printStatusAtRightPosition(userMessage.username.content, "OFFLINE");
 				printf("User %s is now disconnected \n\n", userMessage.username.content);
 				close(sock);
 				ctrl = -1;
-			break;
+				break;
 			default:
 				close(sock);
 				ctrl = -1;
-			break;
+				break;
 		}
 	}
 }
 
 
-void sendToUser(msg * userMessage){
+void sendToUser(msg * userMessage) {
 	//printf("hoiii %d\n\n\n", *clients[0].socket);
 	//printf("hoiii %s \n\n", msg1);
 	//printf("hoiii %s\n", userDestiny);
@@ -215,16 +210,11 @@ void sendToUser(msg * userMessage){
 			fprintf(fp, "\ntoWhom=%s;\nmessage=%s;", userMessage->userDestiny.content, userMessage->message.content);
 			fclose(fp);
 	}else{
-		printf("aaaoi\n\n\n");
+		printf("Online\n\n\n");
 
 	pthread_mutex_lock(&mutex);
-	for(int i=0;i<20; i++){
-		//printf("nClient %d\n", sizeof(clients[i].username));
-		//printf("nMsg %d\n", sizeof(userDestiny));
 
-		//printf("Comparacaço %d \n\n\n\n", strncmp(clients[i].username, userDestiny, strlen(clients[i].username)));
-		
-		
+	for(int i = 0;i < 20; i++) {		
 
 		if(strncmp(clients[i].username, userMessage->userDestiny.content, strlen(clients[i].username)) == 0){
 
@@ -234,24 +224,17 @@ void sendToUser(msg * userMessage){
 				strcpy(server.payload.userDestiny.content, userMessage->userDestiny.content);
 				server.payload.userDestiny.nBytes = userMessage->userDestiny.nBytes;
 
+				printf("Username: %s\n", userMessage->userDestiny.content);
+				printf("Message: %s \n\n", userMessage->message.content);
 
-
-
-				printf("username: %s\n", userMessage->userDestiny.content);
-				//printf("list: %s\n", clients[i].username);
-				
-				//printf("hoiii %d\n", sizeof(msg1));
-				printf("username: %s \n\n", userMessage->message.content);
 				write(*clients[i].socket, (char *) &server, sizeof(serverResponse));
 				break;
 			}
 	}
-	pthread_mutex_unlock(&mutex);
+
+		pthread_mutex_unlock(&mutex);
+
 	}
-
-
-	
-
 }
 
 
@@ -269,7 +252,7 @@ void writeFile(int sockfd) {
 
 	printf("file name %s \n\n", file.nameFile);
 
-    strncat(fileDestiny, file.nameFile, strlen(file.nameFile));
+    	strncat(fileDestiny, file.nameFile, strlen(file.nameFile));
 
 	printf("name File %s \n", file.nameFile);
 
@@ -279,29 +262,20 @@ void writeFile(int sockfd) {
 
 	fp = fopen(fileDestiny, "wb");
 
-	//printf("AAAAA \n\n");
 	server.operation = 0;
 	while(1) {
-		//printf("BBBB \n\n");
-		//printf("esperando client flag %d \n\n\n", server.operation);
-		read(sockfd, (serverResponse *) &server, sizeof(serverResponse));
-		//printf("hhhoi %d \n\n\n", server.operation);
+		
+		read(sockfd, (serverResponse *) &server, sizeof(serverResponse));;
 		//sleep(80);
 
 		if(server.operation == -1){ //terminou o envio
 			break;
 		}else{
-			//printf("esperando dados %d \n\n\n");
 			read(sockfd, buffer, sizeof(buffer));
-			//printf(" %s\n", buffer);
-			//fprintf(fp, "%s", buffer);
 			fwrite(buffer, 1, sizeof(buffer), fp);
 			bzero(buffer, sizeof(buffer));
 			
-			//printf("BBBB \n\n");
 		}		
-		
-		//printf("hhhoi \n\n\n");
 	}
 
 	printf("terminou \n\n\n");
@@ -309,15 +283,14 @@ void writeFile(int sockfd) {
 	return;
 }
 
-
 void returnUserPeerToPeer(int sock, msg userMessage){
 
 	serverResponse server;
 	
 	pthread_mutex_lock(&mutex);
-	for(int i=0;i<20; i++){
+	for(int i = 0;i < 20; i++) {
 
-		if(strncmp(clients[i].username, userMessage.userDestiny.content, strlen(clients[i].username)) == 0){
+		if(strncmp(clients[i].username, userMessage.userDestiny.content, strlen(clients[i].username)) == 0) {
 
 			strncpy(server.payload.message.content, clients[i].ip, 15);
 			server.payload.message.nBytes = 15;
@@ -325,15 +298,12 @@ void returnUserPeerToPeer(int sock, msg userMessage){
 			//envia de volta avisando o destino do usuario
 			write(sock, (char *) &server, sizeof(serverResponse));
 			
-
 			//informa o receptor que chegara um arquivo
 			server.operation = 4;
 			write(*clients[i].socket, (char *) &server, sizeof(serverResponse));
 			
-
 			break;
 		}
 	}
 	pthread_mutex_unlock(&mutex);
-
 }

@@ -4,7 +4,6 @@ struct{
 	int nBytes;
 }typedef charContentOps;
 
-
 struct {
 	int	operation;
 	charContentOps username;
@@ -20,10 +19,9 @@ struct {
 	msg payload;
 } typedef serverResponse;
 
-
 struct {
 
-	int  * socket;
+	int  *socket;
 	char username[1024];
 	int portNumber;
 	char ip[15];
@@ -32,7 +30,6 @@ struct {
 
 
 struct{
-
 	char nameFile[40];
 	long long blockSize;
 
@@ -42,6 +39,5 @@ struct{
 struct{
 	int i;
 	char message[1024];
-	char from[1024]
-
+	char from[1024];
 }typedef messageReceived;

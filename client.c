@@ -22,6 +22,7 @@
 #define PORT_SEND 1236
 
 #define SA struct sockaddr
+
 pthread_mutex_t mutex;
 pthread_mutex_t ScanMutex;
 messageReceived messages[100];
@@ -34,7 +35,10 @@ void sendFile(int , msg ,char * );
 void prepareScopeToSendFile(int, msg);
 void * fileReceive(void * );
 void writeFile(int );
-int main(){
+void menu(int *);
+void sendUserMessage(int, msg);
+
+int main() {
 	int sockfd, connfd;
 	struct sockaddr_in servaddr, cli;
  	struct ifreq ifr;
@@ -105,7 +109,7 @@ void messageHandler(int *sockfd, char * localIP){
 	if(serverResp.operation == 1 || serverResp.operation == 6){
 		if(serverResp.operation == 6){
 			printf("\n\nYou have unread messages\n\n");
-			while(1){
+			while(1) {
 				read(*sockfd, (serverResponse *) &serverResp, sizeof(serverResponse));
 
 				if(serverResp.operation == -1) break;		
@@ -122,7 +126,7 @@ void messageHandler(int *sockfd, char * localIP){
 		exit(0);
 	}
 
-	//THREAD TO RECeIVE INCOMING MESSAGES
+	//Thread to receive incoming messages
 	pthread_create(&thread_id, NULL, (void *)recvMsg, sockfd);
 	//END
 	int ctrl = 1;
@@ -132,10 +136,10 @@ void messageHandler(int *sockfd, char * localIP){
 		switch(op){
 			case 1: 
 				sendUserMessage(*sockfd, userMessage);
-			break;
+				break;
 			case 2:
 				prepareScopeToSendFile(*sockfd, userMessage);
-			break;
+				break;
 			case 3:
 				pthread_mutex_lock(&mutex);
 				while(1){
@@ -151,13 +155,17 @@ void messageHandler(int *sockfd, char * localIP){
 				pthread_mutex_unlock(&mutex);
 
 
-			break;
+				break;
 			case 4:
 				userMessage.operation = 4;
 				write(*sockfd, (char * ) &userMessage, sizeof(msg));
+				break;
+			case 5:
+				userMessage.operation = 5;
+				write(*sockfd, (char * ) &userMessage, sizeof(msg));
 				close(*sockfd);
 				ctrl = -1;
-			break;
+				break;
 		}		
 	}
 }
@@ -184,21 +192,20 @@ void prepareScopeToSendFile(int sock, msg userMessage){
 }
 
 void sendFile(int sock, msg userMessage, char * ip){
-	serverResponse server;
-	char data[MAX] = {0};
-	FILE *filePointer;
+
+	int sock2;
 	long long size = 0;
 	char buff[40] = {'\0'};
 	char buffFile[40] = {'\0'};
-	long long vectorSize = 0;
-	fileTransfer file;
-	struct sockaddr_in servaddr;
+	char data[MAX] = {0};
 	char localIP[15];
-	int sock2;
+	long long vectorSize = 0;
+	struct sockaddr_in servaddr;
+
+	FILE *filePointer;
+	serverResponse server;
+	fileTransfer file;
 	strncpy(localIP, ip, 15);
-
-
-	//close(sock);
 
 	sock2 = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -206,6 +213,7 @@ void sendFile(int sock, msg userMessage, char * ip){
 		printf("socket creation failed...\n");
 		exit(0);
 	}
+
 	servaddr.sin_family = AF_INET;
 	
 	//servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -227,7 +235,6 @@ void sendFile(int sock, msg userMessage, char * ip){
 
 	sock = sock2;
 
-
 	int n;
 
 	printf("Enter the name of the file you want to send: \n");
@@ -235,9 +242,7 @@ void sendFile(int sock, msg userMessage, char * ip){
 	while ((buff[n++] = getchar()) != '\n');
 	n--;
 
-	//getchar();
 	printf("File name %s", buff);
-
 
 	strncpy(buffFile, buff, n);
 	filePointer = fopen(buffFile, "rb");
@@ -245,22 +250,7 @@ void sendFile(int sock, msg userMessage, char * ip){
 	fseek(filePointer, 0, SEEK_END);
 	size = ftell(filePointer);
 	fseek(filePointer, 0, SEEK_SET);
-
-	//printf("tamanho arquivo %lld \n\n\n", size);
-	//return;
-	//fgets(server.payload.message.content, sizeof(server.payload.message.content), filePointer);
-	//printf("Value da linha %s \n\n\n", server.payload.message.content);
-
-	//sleep(80);
-	/*
-	if(size <= 10240){
-		vectorSize = size;
-	}else{
-		vectorSize = 1048576;
-	}*/
 	vectorSize = 1024;
-
-
 
 	char * buffer;
 	buffer = malloc(vectorSize);
@@ -271,50 +261,29 @@ void sendFile(int sock, msg userMessage, char * ip){
 	printf("block size %lld \n\n", file.blockSize);
 
 	char loading[100] = {'\0'};
-	//int aux = (int) (vectorSize * 10)/size;
-	//printf("size %d \n\n", aux);
-	//loading = malloc(aux);
-
-	//sleep(50);
 
 	write(sock, (char *) &file, sizeof(fileTransfer));
 
-	//printf("size %d \n\n", aux);
-
-	//server.operation = 2;
 	int k = 1;
 	int countLoading = 1;
 	int sizeAux = 0;
+
 	size = 1024;
 	size_t result;
-	do{
-		
-		//fgets(buffer, sizeof(buffer), filePointer);
+
+	do {
 		server.operation = 2;
-		//printf("loop \n\n");
-		//printf("get\n\n");
 		if (write(sock, (char *) &server, sizeof(serverResponse)) == -1) {
 			perror("error in sending data");
 			break;
-			//exit(1);
 		}
 		
 		result = fread(buffer, 1, 1024, filePointer);
-		//printf("result %d \n \n", sizeof(buffer));
-
-		
-		
-
 		write(sock, buffer, 1024);
 		
-		//printf("enviou\n\n");
 		bzero(buffer, sizeof(buffer));
 
-		//printf("result %d \n\n", result);
-		//printf("k %d \n\n",  k);
-		//printf("size %d \n\n", size);
-
-		if(( (size/1024)/10) <= (k*result) ){
+		if(( (size / 1024) / 10) <= (k * result) ){
 			
 			strncat(loading, "#", 1);
 			printf("\r %s", loading);
@@ -323,15 +292,9 @@ void sendFile(int sock, msg userMessage, char * ip){
 			//sleep(80);
 			countLoading ++;
 			k = 0;
-			
 		}
 
 		k++;
-
-
-		
-		
-
 
 	}while(!feof(filePointer));
 
@@ -344,9 +307,6 @@ void sendFile(int sock, msg userMessage, char * ip){
 	sleep(2);
 	close(sock);
 	return ;
-
-
-
 }
 
 void sendUserMessage(int sock, msg userMessage){
@@ -385,7 +345,7 @@ char buff[MAX]={0};
 		if ((strncmp(buff, "exit", 4)) == 0) {
 			printf("Client Exit...\n");
 
-			userMessage.operation = 4; //exit operation
+			userMessage.operation = 5; //exit operation
 			write(sock, (char *) &userMessage, sizeof(msg));
 			close(sock);
 			exit(1);
@@ -429,8 +389,9 @@ void menu(int * op){
 	}
 
 	pthread_mutex_unlock(&mutex);
+	printf("4 - Contact list \n");
+	printf("5 - Exit \n");
 
-	printf("4 - Exit \n");
 	scanf("%d", op);
 	getchar();
 }
@@ -462,12 +423,24 @@ void * recvMsg(void * sockfd){
 				pthread_mutex_unlock(&mutex);
 
 			break;
-			case 3: //CONTACT LIST
+			case 3: 
+				printf("\n\n\n############# Contact List #############");
+				printf("\n\n");
 
+				while(1) {
 
-			break;
-			case 4: //INCOMING FILE
-				//THREAD TO RECIVE INCOMING MESSAGES
+					read(sock, (serverResponse *) &server, sizeof(serverResponse));
+
+					if(server.operation == -1) break;		
+					else{
+						printf("\t%s\n", server.payload.message.content);
+					}
+				}
+		
+				break;
+			case 4: 
+				//INCOMING FILE
+				//THREAD TO RECEIVE INCOMING MESSAGES
 				pthread_create(&thread_id, NULL, (void *)fileReceive, &sock);
 				//END
 			break;
@@ -530,7 +503,7 @@ void * fileReceive(void * sockfd){
 	close(connfd);
 
 	
-	pthread_exit(pthread_self());
+	pthread_exit((void*)pthread_self());
 
 	
 }
