@@ -405,9 +405,8 @@ void * recvMsg(void * sockfd){
 
 	int ctrl = 1;
 	while(ctrl == 1){
-		//printf("read \n");
+		server.operation = -1;
 		read(sock, (serverResponse *) &server, sizeof(serverResponse));
-		
 		switch(server.operation){
 			case 1:
 				printf("\t\n Server close connection. Exiting..... \n");	
@@ -424,6 +423,7 @@ void * recvMsg(void * sockfd){
 
 			break;
 			case 3: 
+
 				printf("\n\n\n############# Contact List #############");
 				printf("\n\n");
 
@@ -436,7 +436,9 @@ void * recvMsg(void * sockfd){
 						printf("\t%s\n", server.payload.message.content);
 					}
 				}
-		
+				printf("\n\n\n############# End #############\n\n\n");
+				printf("\n Type '9' to continue \n");
+
 				break;
 			case 4: 
 				//INCOMING FILE

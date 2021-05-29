@@ -155,7 +155,7 @@ void * registerUser(void * sockfd){
 	while(ctrl == 1){
 		read(sock, (msg *) &userMessage, sizeof(msg));
 
-		printf("Read message: %d \n\n\n", userMessage.operation);
+		printf("Read message operation: %d \n\n\n", userMessage.operation);
 
 		switch (userMessage.operation){
 			case 1:
@@ -179,19 +179,21 @@ void * registerUser(void * sockfd){
 					message.operation = 3;
 					strncpy(message.payload.message.content, contactList, 1023);
 					write(sock, (char *) &message, sizeof(serverResponse));
-            				i++;	
+            		i++;	
 				}
-				
+				message.operation = -1;
+
+				write(sock, (char *) &message, sizeof(serverResponse));
 				break;
 			case 5: 
-				printStatusAtRightPosition(userMessage.username.content, "OFFLINE");
-				printf("User %s is now disconnected \n\n", userMessage.username.content);
-				close(sock);
-				ctrl = -1;
+					printStatusAtRightPosition(userMessage.username.content, "OFFLINE");
+					printf("User %s is now disconnected \n\n", userMessage.username.content);
+					close(sock);
+					ctrl = -1;
 				break;
 			default:
-				close(sock);
-				ctrl = -1;
+					close(sock);
+					ctrl = -1;
 				break;
 		}
 	}
@@ -278,7 +280,7 @@ void writeFile(int sockfd) {
 		}		
 	}
 
-	printf("terminou \n\n\n");
+	//printf("terminou \n\n\n");
 	fclose(fp);
 	return;
 }
