@@ -1,2 +1,4 @@
 toWhom=hoiVintas;
 message=VAI POR FAVOR;
+toWhom=vintas;
+message=From: - nakamiti: fala, bonitao;

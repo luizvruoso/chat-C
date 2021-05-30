@@ -106,8 +106,8 @@ char *printContactList(int count) {
 			fclose(file);
 			return message;
 		}
-	
-		fgets(line, sizeof(line), file);
+
+		fgets(line, sizeof(line), file);	
 		fgets(line, sizeof(line), file);
 		i++;
 	}

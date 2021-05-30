@@ -170,7 +170,7 @@ void * registerUser(void * sockfd){
 				//send file
 				break;
 			case 4: ;
-				int i = 1;
+				int i = 0;
 				char *contactList = '\0';			
 				int maxNumberOfLines = numberOfLines();
 
@@ -179,11 +179,12 @@ void * registerUser(void * sockfd){
 					message.operation = 3;
 					strncpy(message.payload.message.content, contactList, 1023);
 					write(sock, (char *) &message, sizeof(serverResponse));
-            		i++;	
+            				i++;	
 				}
-				message.operation = -1;
 
+				message.operation = -1;
 				write(sock, (char *) &message, sizeof(serverResponse));
+
 				break;
 			case 5: 
 					printStatusAtRightPosition(userMessage.username.content, "OFFLINE");
@@ -209,21 +210,21 @@ void sendToUser(msg * userMessage) {
 			printf("\nOFFLINE\n");
 			FILE *fp;
 			fp = fopen("messages.txt", "a+");
-			fprintf(fp, "\ntoWhom=%s;\nmessage=%s;", userMessage->userDestiny.content, userMessage->message.content);
+			fprintf(fp, "\ntoWhom=%s;\nmessage=From: - %s: %s;", userMessage->userDestiny.content, userMessage->username.content, userMessage->message.content);
 			fclose(fp);
 	}else{
 		printf("Online\n\n\n");
 
 	pthread_mutex_lock(&mutex);
 
-	for(int i = 0;i < 20; i++) {		
+	for(int i = 0; i < 20; i++) {		
 
 		if(strncmp(clients[i].username, userMessage->userDestiny.content, strlen(clients[i].username)) == 0){
 
 				server.operation = 2; //incoming message
 				strcpy(server.payload.message.content, userMessage->message.content);
 				server.payload.message.nBytes = userMessage->message.nBytes;
-				strcpy(server.payload.userDestiny.content, userMessage->userDestiny.content);
+				strcpy(server.payload.userDestiny.content, userMessage->username.content);
 				server.payload.userDestiny.nBytes = userMessage->userDestiny.nBytes;
 
 				printf("Username: %s\n", userMessage->userDestiny.content);

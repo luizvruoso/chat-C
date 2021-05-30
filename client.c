@@ -114,7 +114,8 @@ void messageHandler(int *sockfd, char * localIP){
 
 				if(serverResp.operation == -1) break;		
 				else{
-					printf("\n Message: %s", serverResp.payload.message.content);
+					printf("\n%s", serverResp.payload.message.content);
+					printf("\n\n\n");
 				}
 			}
 		}else{
@@ -152,9 +153,8 @@ void messageHandler(int *sockfd, char * localIP){
 						printf("\nMessage: %s \n", messages[i].message);
 					i++;
 				}
+
 				pthread_mutex_unlock(&mutex);
-
-
 				break;
 			case 4:
 				userMessage.operation = 4;
@@ -426,7 +426,7 @@ void * recvMsg(void * sockfd){
 
 				printf("\n\n\n############# Contact List #############");
 				printf("\n\n");
-
+				printf("\t%s\n", server.payload.message.content);
 				while(1) {
 
 					read(sock, (serverResponse *) &server, sizeof(serverResponse));
