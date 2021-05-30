@@ -247,12 +247,11 @@ void printAtEndOfFile(char *buff,  char *userStatus){
 	fclose(file);
 }
 
-char *getMessage(char *username) {
+void getMessage(char *username, char *result) {
 
     FILE *file;
     file = fopen(MESSAGES_FILE_NAME, "r");
-    char *message;
-    message = malloc (sizeof (char) * 15);
+    char message[MAX];
 
     if(file == NULL) {
         fprintf(stderr, "Could not open input file\n");
@@ -273,8 +272,8 @@ char *getMessage(char *username) {
             	i++;
             	fgets(line, sizeof(line), file);
             	sscanf(line, "%*[^=]=%[^;]", usernameCompare);
-	        strcpy(message, usernameCompare);
-		fclose(file);
+	        	strcpy(result, usernameCompare);
+				fclose(file);
 
             	deleteLineFromFile(i);
             	deleteLineFromFile(i - 1);	

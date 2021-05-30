@@ -118,12 +118,12 @@ void * registerUser(void * sockfd){
 
 		write(sock, (char *) &message, sizeof(serverResponse));
 
-		char *messageString;
+		char messageString[1024];
 
 		while(hasMessage(userMessage.username.content) == 1){
 			message.operation = 6;
 			message.statusCode = 1;
-			messageString = getMessage(userMessage.username.content);
+			getMessage(userMessage.username.content, messageString);
 
 			strncpy(message.payload.message.content,messageString, 1023);
 			write(sock, (char *) &message, sizeof(serverResponse));
