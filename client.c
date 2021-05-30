@@ -79,6 +79,28 @@ int main() {
 	close(sockfd);
 }
 
+
+
+void menu(int * op){
+	printf("\n1 - Send Message \n");
+	printf("2 - Send File \n");
+
+	pthread_mutex_lock(&mutex);
+
+	if(lastPositionMessage != 0){
+		printf("3 - Messages - You have %d unread \n", lastPositionMessage);
+	}else{
+		printf("3 - Messages \n");
+	}
+
+	pthread_mutex_unlock(&mutex);
+	printf("4 - Contact list \n");
+	printf("5 - Exit \n");
+
+	scanf("%d", op);
+	getchar();
+}
+
 void messageHandler(int *sockfd, char * localIP){
 	char buff[MAX]={0};
 	int n;
@@ -310,90 +332,56 @@ void sendFile(int sock, msg userMessage, char * ip){
 }
 
 void sendUserMessage(int sock, msg userMessage){
-char buff[MAX]={0};
-		char buffUser[MAX] = {0};
-		char buffSpecificUser[MAX] = {0};
-		int n;
-		int i = 0;
-		int j = 0;
-		int nUser;
+	char buff[MAX]={0};
+	char buffUser[MAX] = {0};
+	char buffSpecificUser[MAX] = {0};
+	int n;
+	int i = 0;
+	int j = 0;
+	int nUser;
 
 		//send message to
-		bzero(buffUser, sizeof(buffUser));
-		printf("\nEnter the user : ");
-		nUser = 0;
-		while ((buffUser[nUser++] = getchar()) != '\n');
-		nUser--;
-		// bzero(userMessage.userDestiny.content, 1024);
-		// strncpy(userMessage.userDestiny.content, buffUser, nUser);	
-		// userMessage.userDestiny.nBytes = nUser;
-		
-		
-		// userMessage.operation = 1;// send file operation
-		//end
-		
-		//message to be sended
-		// bzero(buff, sizeof(buff));
-		printf("\n\nEnter the string : ");
-		n = 0;
-		while ((buff[n++] = getchar()) != '\n');
-		n--;
-		strncpy(userMessage.message.content, buff, n);
-		userMessage.message.nBytes = n;
-		//end
+	bzero(buffUser, sizeof(buffUser));
+	printf("\nEnter the user : ");
+	nUser = 0;
+	while ((buffUser[nUser++] = getchar()) != '\n');
+	nUser--;
 
-		if ((strncmp(buff, "exit", 4)) == 0) {
-			printf("Client Exit...\n");
+	printf("\n\nEnter the string : ");
+	n = 0;
+	while ((buff[n++] = getchar()) != '\n');
+	n--;
+	strncpy(userMessage.message.content, buff, n);
+	userMessage.message.nBytes = n;
+	//end
+	if ((strncmp(buff, "exit", 4)) == 0) {
+		printf("Client Exit...\n");
 
-			userMessage.operation = 5; //exit operation
-			write(sock, (char *) &userMessage, sizeof(msg));
-			close(sock);
-			exit(1);
-		}
-
-		while(i <= nUser) {
-			if(buffUser[i] == ' ' || i == nUser) {
-				bzero(userMessage.userDestiny.content, 1024);
-				userMessage.userDestiny.nBytes = 0;
-				strncpy(userMessage.userDestiny.content, buffSpecificUser, j);	
-				userMessage.userDestiny.nBytes = j;
-				userMessage.operation = 1;
-				i++;
-				j = 0;
-				bzero(buffSpecificUser, sizeof(buffSpecificUser));
-
-				write(sock, (char *) &userMessage, sizeof(msg));
-				sleep(2);
-			} else {
-				buffSpecificUser[j] = buffUser[i];
-				i++;
-				j++;
-			}
-		}
-
-		// write(sock, (char *) &userMessage, sizeof(msg));
-		// sleep(2);
-		// envio 
-}
-
-void menu(int * op){
-	printf("\n1 - Send Message \n");
-	printf("2 - Send File \n");
-
-	pthread_mutex_lock(&mutex);
-
-	if(lastPositionMessage != 0){
-		printf("3 - Messages - You have %d unread \n", lastPositionMessage);
-	}else{
-		printf("3 - Messages \n");
+		userMessage.operation = 5; //exit operation
+		write(sock, (char *) &userMessage, sizeof(msg));
+		close(sock);
+		exit(1);
 	}
 
-	pthread_mutex_unlock(&mutex);
-	printf("4 - Contact list \n");
-	printf("5 - Exit \n");
+	while(i <= nUser) {
+		if(buffUser[i] == ' ' || i == nUser) {
+			bzero(userMessage.userDestiny.content, 1024);
+			userMessage.userDestiny.nBytes = 0;
+			strncpy(userMessage.userDestiny.content, buffSpecificUser, j);	
+			userMessage.userDestiny.nBytes = j;
+			userMessage.operation = 1;
+			i++;
+			j = 0;
+			bzero(buffSpecificUser, sizeof(buffSpecificUser));
+			write(sock, (char *) &userMessage, sizeof(msg));
+			sleep(2);
+		} else {
+			buffSpecificUser[j] = buffUser[i];
+			i++;
+			j++;
+		}
+	}
 
-	scanf("%d", op);
-	getchar();
 }
 
 void * recvMsg(void * sockfd){

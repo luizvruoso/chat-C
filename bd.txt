@@ -1,6 +1,10 @@
 username=nakamiti;
-status=ONLINE;
+status=OFFLINE;
 username=luiz;
-status=ONLINE;
+status=OFFLINE;
 username=vintas;
+status=OFFLINE;
+username=kris;
+status=ONLINE;
+username=salsa;
 status=ONLINE;

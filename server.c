@@ -70,7 +70,8 @@ int main() {
 
 	len = sizeof(cli);
 	// Accept the data packet from client and verification
-
+	setAllOffline();
+	
 	for(int i = 0; i < 20; i++) {
 
 		connfd = accept(sockfd, (SA*) &cli, &len);
@@ -82,7 +83,7 @@ int main() {
 			printf("server accept the client...\n");
 		
 		pthread_mutex_lock(&mutex);
-
+		
 		pthread_create(&thread_id, NULL, (void *)registerUser, &connfd);
 
 		pthread_mutex_unlock(&mutex);	
@@ -97,7 +98,8 @@ void * registerUser(void * sockfd){
 	serverResponse message;
 	msg userMessage;
 	int sock = *((int *) sockfd);
-
+	
+	
 	read(sock, (struct msg *) &userMessage, sizeof(userMessage));
 	printf("User : %s is now connected \n", userMessage.username.content);
 
@@ -114,7 +116,6 @@ void * registerUser(void * sockfd){
 	if(hasMessage(userMessage.username.content) == 1){
 		message.operation = 6;
 		message.statusCode = 1; 
-		//strcpy(message.payload.message.content, "Connected...");
 
 		write(sock, (char *) &message, sizeof(serverResponse));
 
@@ -171,11 +172,11 @@ void * registerUser(void * sockfd){
 				break;
 			case 4: ;
 				int i = 0;
-				char *contactList = '\0';			
+				char contactList[MAX] = {'\0'};			
 				int maxNumberOfLines = numberOfLines();
 
 				while(i < maxNumberOfLines / 2) {
-					contactList = printContactList(i);
+					printContactList(i, contactList);
 					message.operation = 3;
 					strncpy(message.payload.message.content, contactList, 1023);
 					write(sock, (char *) &message, sizeof(serverResponse));
@@ -202,9 +203,6 @@ void * registerUser(void * sockfd){
 
 
 void sendToUser(msg * userMessage) {
-	//printf("hoiii %d\n\n\n", *clients[0].socket);
-	//printf("hoiii %s \n\n", msg1);
-	//printf("hoiii %s\n", userDestiny);
 	serverResponse server;
 	if(isUserOnline(userMessage->userDestiny.content) == 1) {
 			printf("\nOFFLINE\n");
@@ -238,52 +236,6 @@ void sendToUser(msg * userMessage) {
 		pthread_mutex_unlock(&mutex);
 
 	}
-}
-
-
-void writeFile(int sockfd) {
-	FILE *fp;
-	char * buffer;
-	int n;
-	serverResponse server;
-	fileTransfer file;
-	char fileDestiny[40] = {'\0'};
-
-	strcpy(fileDestiny, "../received-");
-
-	read(sockfd, (fileTransfer *) &file, sizeof(fileTransfer));
-
-	printf("file name %s \n\n", file.nameFile);
-
-    	strncat(fileDestiny, file.nameFile, strlen(file.nameFile));
-
-	printf("name File %s \n", file.nameFile);
-
-	buffer = malloc(file.blockSize);
-
-	printf("buffer size %lld \n", file.blockSize);
-
-	fp = fopen(fileDestiny, "wb");
-
-	server.operation = 0;
-	while(1) {
-		
-		read(sockfd, (serverResponse *) &server, sizeof(serverResponse));;
-		//sleep(80);
-
-		if(server.operation == -1){ //terminou o envio
-			break;
-		}else{
-			read(sockfd, buffer, sizeof(buffer));
-			fwrite(buffer, 1, sizeof(buffer), fp);
-			bzero(buffer, sizeof(buffer));
-			
-		}		
-	}
-
-	//printf("terminou \n\n\n");
-	fclose(fp);
-	return;
 }
 
 void returnUserPeerToPeer(int sock, msg userMessage){

@@ -3,9 +3,49 @@
 #define TEMP_FILE_NAME  "temp.txt"
 #define MESSAGES_FILE_NAME "messages.txt"
 
-void valueAfterEquals(char *, char *);
-void deleteLineFromFile(int);
+void setAllOffline(){
+    FILE * file;
+    FILE * tempFile;
 
+    file = fopen(FILE_NAME, "a+");
+    tempFile = fopen(TEMP_FILE_NAME, "w");
+
+    char buff[MAX] = {'\0'};
+    char aux[MAX]  = {'\0'};
+
+    if(file == NULL) {
+        fprintf(stderr, "Could not open input file\n");
+        exit(1);
+    }
+
+    if(tempFile == NULL) {
+        fprintf(stderr, "Could not open temp file\n");
+        exit(1);
+    }
+
+	int i = 0;
+	
+	bzero(aux, sizeof(aux));
+	bzero(buff, sizeof(buff));
+	
+	while(!feof(file)) {
+		bzero(buff, sizeof(buff));
+
+		fgets(buff, 1024, file);
+        fprintf(tempFile, "%s", buff);
+		if(strlen(buff) >=1){
+        	fprintf(tempFile, "status=OFFLINE;\n", buff);
+		}
+		fgets(buff, 1024, file);
+
+		i++;
+	}
+
+   	fclose(file);
+    fclose(tempFile);
+    remove(FILE_NAME); 
+    rename(TEMP_FILE_NAME, FILE_NAME);
+}
 int searchUser(char *username) {
 
 	char buff[MAX] = {};
@@ -44,7 +84,6 @@ int searchUser(char *username) {
 	fclose(file);
 	return 1;
 }
-
 int numberOfLines() {
     FILE *file;
     file = fopen(FILE_NAME, "r");
@@ -63,8 +102,7 @@ int numberOfLines() {
 	printf("Linhas: %d\n", lines);
 	return lines;
 }
-
-char *printContactList(int count) {
+void printContactList(int count, char * message ) {
     FILE *file;
 
     file = fopen(FILE_NAME,"r");
@@ -74,9 +112,9 @@ char *printContactList(int count) {
     char destiny[MAX] = {'\0'};
     char aux[MAX] = "User ";
     char secAux[MAX] = " is ";
-    char *message;
+    //char *message;
 
-    message = malloc (sizeof (char) * 40);
+    //message = malloc (sizeof (char) * 40);
     bzero(message, sizeof(message));
 
     if(file == NULL) {
@@ -104,7 +142,7 @@ char *printContactList(int count) {
 			strcat(message, aux);
 
 			fclose(file);
-			return message;
+			return;
 		}
 
 		fgets(line, sizeof(line), file);	
@@ -112,9 +150,8 @@ char *printContactList(int count) {
 		i++;
 	}
 
-	return NULL;
+	return ;
 }
-
 void printStatusAtRightPosition(char *username, char *status) {
 
     FILE * file;
@@ -165,7 +202,6 @@ void printStatusAtRightPosition(char *username, char *status) {
     	remove(FILE_NAME); 
     	rename(TEMP_FILE_NAME, FILE_NAME);
 }
-
 int isUserOnline(char *username) {
 
     FILE *file;
@@ -201,8 +237,6 @@ int isUserOnline(char *username) {
     fclose(file);
     return 0;
 }
-
-
 int isEqualsToUsername(char *username, int n){
 
 	char aux[n];
@@ -218,8 +252,6 @@ int isEqualsToUsername(char *username, int n){
 	if(strcmp(aux, "username")) return 1;
 	else return -1;
 }
-
-
 void valueAfterEquals(char * destiny, char * buffer){
 
 	int k = 0;
@@ -235,7 +267,6 @@ void valueAfterEquals(char * destiny, char * buffer){
 		i++;
 	}
 }
-
 void printAtEndOfFile(char *buff,  char *userStatus){
 
 	FILE * file;
@@ -246,7 +277,6 @@ void printAtEndOfFile(char *buff,  char *userStatus){
 
 	fclose(file);
 }
-
 void getMessage(char *username, char *result) {
 
     FILE *file;
@@ -319,8 +349,6 @@ void deleteLineFromFile(int lineNumber) {
     remove(MESSAGES_FILE_NAME);
     rename("replica.txt", MESSAGES_FILE_NAME);
 }
-
-
 int hasMessage(char *username) {
 
     FILE *file;
